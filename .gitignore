@@ -1,0 +1,5 @@
+premake5.exe
+/build
+/OpenCVTest/opencv_world411.dll
+/OpenCVTest/opencv_world411d.dll
+/Libraries/OpenCV
