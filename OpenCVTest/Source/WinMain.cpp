@@ -46,14 +46,21 @@ void TestSimpleModification()
 
 void TestDFT()
 {
+    // Load the original image.
+    //Mat originalImage = imread( "Data/adult-city-female-1574140.jpg", IMREAD_GRAYSCALE );
     Mat originalImage = imread( "Data/action-adventure-backlit-209209.jpg", IMREAD_GRAYSCALE );
 
-    Mat originalImageAsFloats;
-
-    originalImage.convertTo( originalImageAsFloats, CV_32FC1, 1.0f / 255.0f );
-
+    // Generate DFT values.
     Mat dftValues;
+    GenerateDFTFromGrayscaleImage( originalImage, dftValues );
 
-    TakeDFT( originalImageAsFloats, dftValues );
-    ShowDFT( dftValues );
+    // Rebuild the image from the DFT values.
+    Mat rebuiltImage;
+    dft( dftValues, rebuiltImage, DFT_INVERSE | DFT_COMPLEX_INPUT | DFT_REAL_OUTPUT | DFT_SCALE );
+
+    // Display the results.
+    //ShiftTopLeftToCenter( originalImage );
+    ShowImageWithFixedWidthAtPosition( "Original", originalImage, 450, 50, 50 );
+    ShowDFTResult( "DFT", dftValues, 450, 50 + 450+10, 50 );
+    ShowImageWithFixedWidthAtPosition( "Rebuilt Image", rebuiltImage, 450, 50 + (450+10)*2, 50 );
 }

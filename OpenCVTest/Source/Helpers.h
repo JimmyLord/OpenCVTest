@@ -5,7 +5,9 @@
 
 void ShowImageWithFixedWidthAtPosition(const cv::String windowName, cv::Mat& image, int width, int posX, int posY);
 
-void TakeDFT(cv::Mat& image, cv::Mat& output);
-void ShowDFT(cv::Mat& image);
+void GenerateDFTFromGrayscaleImage(cv::Mat& image, cv::Mat& output);
+void ShowDFTResult(const cv::String windowName, cv::Mat& image, int width, int posX, int posY);
+
+void ShiftTopLeftToCenter(cv::Mat& image);
 
 #endif //__Helpers_H__
