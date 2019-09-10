@@ -9,14 +9,14 @@ using namespace cv;
 void TestSimpleModification();
 void TestDFT();
 void TestVideo();
-void TestErosion();
+void TestMorph();
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
     //TestSimpleModification();
     //TestDFT();
     //TestVideo();
-    TestErosion();
+    TestMorph();
 
     waitKey();
 }
@@ -93,18 +93,22 @@ void TestVideo()
 
 // Following tutorial by Ana Huamán here:
 //   https://docs.opencv.org/master/db/df6/tutorial_erosion_dilatation.html
-Mat erosion_src, erosion_dst;
-int erosion_elem = 0;
-int erosion_size = 0;
-int const max_elem = 2;
-int const max_kernel_size = 21;
-void Erosion(int, void*);
 
-void TestErosion()
+// Globals for Trackbar settings.
+Mat g_MorphSrc, g_MorphDst;
+int const g_TBNumMorphTypes = 7; // Don't allow "hit or miss" for now.
+int g_TBMorphType = 0;
+int const g_TBNumKernelShapes = 3;
+int g_TBKernelShape = 0;
+int g_TBKernetSize = 0;
+int const g_MaxKernelSize = 21;
+void Morph(int, void*);
+
+void TestMorph()
 {
     // Load the original image.
-    //erosion_src = imread( "Data/adult-city-female-1574140.jpg", IMREAD_COLOR );
-    erosion_src = imread( "Data/action-adventure-backlit-209209.jpg", IMREAD_COLOR );
+    //g_MorphSrc = imread( "Data/adult-city-female-1574140.jpg", IMREAD_COLOR );
+    g_MorphSrc = imread( "Data/action-adventure-backlit-209209.jpg", IMREAD_COLOR );
 
     // Create a window for erosion kernel settings.
     namedWindow( "Erosion Controls", WINDOW_KEEPRATIO );
@@ -112,12 +116,13 @@ void TestErosion()
     moveWindow( "Erosion Controls", 50 + (450+10)*2, 550 );
 
     // Select Kernel shape and size, call Erosion() every time they change.    
-    createTrackbar( "Shape:", "Erosion Controls", &erosion_elem, max_elem, Erosion ); //\n 0: Rect \n 1: Cross \n 2: Ellipse
-    createTrackbar( "Size:", "Erosion Controls", &erosion_size, max_kernel_size, Erosion ); //\n 2n +1
+    createTrackbar( "Morph:", "Erosion Controls", &g_TBMorphType, g_TBNumMorphTypes-1, Morph ); //\n 0: Rect \n 1: Cross \n 2: Ellipse
+    createTrackbar( "Shape:", "Erosion Controls", &g_TBKernelShape, g_TBNumKernelShapes-1, Morph ); //\n 0: Rect \n 1: Cross \n 2: Ellipse
+    createTrackbar( "Size:", "Erosion Controls", &g_TBKernetSize, g_MaxKernelSize-1, Morph ); //\n 2n +1
 
     // Display the original and call Erosion() to display the initial result.
-    ShowImageWithFixedWidthAtPosition( "Original", erosion_src, 450, 50, 50 );
-    Erosion( 0, 0 );
+    ShowImageWithFixedWidthAtPosition( "Original", g_MorphSrc, 450, 50, 50 );
+    Morph( 0, 0 );
 
     // Other test code with very low res image and kernel.
     if( false )
@@ -135,20 +140,30 @@ void TestErosion()
     }
 }
 
-void Erosion(int, void*)
+void Morph(int, void*)
 {
-    int erosion_type = MORPH_RECT;
-    if( erosion_elem == 0 )         { erosion_type = MORPH_RECT; }
-    else if( erosion_elem == 1 )    { erosion_type = MORPH_CROSS; }
-    else if( erosion_elem == 2 )    { erosion_type = MORPH_ELLIPSE; }
+    int morphType = MORPH_ERODE;
+    if( g_TBMorphType == 0 )        { morphType = MORPH_ERODE; }
+    else if( g_TBMorphType == 1 )   { morphType = MORPH_DILATE; }
+    else if( g_TBMorphType == 2 )   { morphType = MORPH_OPEN; }
+    else if( g_TBMorphType == 3 )   { morphType = MORPH_CLOSE; }
+    else if( g_TBMorphType == 4 )   { morphType = MORPH_GRADIENT; }
+    else if( g_TBMorphType == 5 )   { morphType = MORPH_TOPHAT; }
+    else if( g_TBMorphType == 6 )   { morphType = MORPH_BLACKHAT; }
+    //else if( g_TBMorphType == 7 )   { morphType = MORPH_HITMISS; }
+
+    int kernelShape = MORPH_RECT;
+    if( g_TBKernelShape == 0 )      { kernelShape = MORPH_RECT; }
+    else if( g_TBKernelShape == 1 ) { kernelShape = MORPH_CROSS; }
+    else if( g_TBKernelShape == 2 ) { kernelShape = MORPH_ELLIPSE; }
 
     // Create the kernel.
-    Mat kernel = getStructuringElement( erosion_type, Size( 2*erosion_size + 1, 2*erosion_size+1 ), Point( erosion_size, erosion_size ) ) * 255.0f;
+    Mat kernel = getStructuringElement( kernelShape, Size( 2*g_TBKernetSize+1, 2*g_TBKernetSize+1 ), Point( g_TBKernetSize, g_TBKernetSize ) ) * 255.0f;
 
-    // Erode.
-    erode( erosion_src, erosion_dst, kernel );
+    // Apply the morphological transformation.
+    morphologyEx( g_MorphSrc, g_MorphDst, morphType, kernel );
 
     // Display result and kernel.
-    ShowImageWithFixedWidthAtPosition( "Eroded", erosion_dst, 450, 50 + 450+10, 50 );
+    ShowImageWithFixedWidthAtPosition( "Eroded", g_MorphDst, 450, 50 + 450+10, 50 );
     ShowImageWithFixedWidthAtPosition( "Kernel", kernel, 450, 50 + (450+10)*2, 50 );
 }
