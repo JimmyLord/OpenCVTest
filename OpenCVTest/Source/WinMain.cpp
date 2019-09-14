@@ -10,7 +10,7 @@ void TestSimpleModification();
 void TestDFT();
 void TestVideo();
 void TestMorph();
-void TestThreshhold();
+void TestThreshold();
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
@@ -18,7 +18,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     //TestDFT();
     //TestVideo();
     //TestMorph();
-    TestThreshhold();
+    TestThreshold();
 
     waitKey();
 }
@@ -171,47 +171,47 @@ void Morph(int, void*)
 }
 
 // Globals for Trackbar settings.
-Mat g_ThreshholdSrc, g_ThreshholdDst;
-int const g_TBNumThreshholdTypes = 5; // Don't allow "hit or miss" for now.
-int g_TBThreshholdType = 0;
-int g_TBThreshholdValue = 0;
-void Threshhold(int, void*);
+Mat g_ThresholdSrc, g_ThresholdDst;
+int const g_TBNumThresholdTypes = 5; // Don't allow "hit or miss" for now.
+int g_TBThresholdType = 0;
+int g_TBThresholdValue = 0;
+void Threshold(int, void*);
 
-void TestThreshhold()
+void TestThreshold()
 {
     // Load the original image.
-    //g_ThreshholdSrc = imread( "Data/adult-city-female-1574140.jpg", IMREAD_GRAYSCALE );
-    g_ThreshholdSrc = imread( "Data/action-adventure-backlit-209209.jpg", IMREAD_GRAYSCALE );
+    //g_ThresholdSrc = imread( "Data/adult-city-female-1574140.jpg", IMREAD_GRAYSCALE );
+    g_ThresholdSrc = imread( "Data/action-adventure-backlit-209209.jpg", IMREAD_GRAYSCALE );
 
     // Create a window for erosion kernel settings.
-    namedWindow( "Threshhold Controls", WINDOW_KEEPRATIO );
-    resizeWindow( "Threshhold Controls", 450, 100 );
-    moveWindow( "Threshhold Controls", 50 + (450+10)*2, 550 );
+    namedWindow( "Threshold Controls", WINDOW_KEEPRATIO );
+    resizeWindow( "Threshold Controls", 450, 100 );
+    moveWindow( "Threshold Controls", 50 + (450+10)*2, 550 );
 
-    // Select Threshhold type and max value, call Threshhold() every time they change.    
-    createTrackbar( "Type:", "Threshhold Controls", &g_TBThreshholdType, g_TBNumThreshholdTypes-1, Threshhold );
-    createTrackbar( "Value:", "Threshhold Controls", &g_TBThreshholdValue, 255, Threshhold );
+    // Select Threshold type and max value, call Threshold() every time they change.    
+    createTrackbar( "Type:", "Threshold Controls", &g_TBThresholdType, g_TBNumThresholdTypes-1, Threshold );
+    createTrackbar( "Value:", "Threshold Controls", &g_TBThresholdValue, 255, Threshold );
 
     // Display the original and call Erosion() to display the initial result.
-    ShowImageWithFixedWidthAtPosition( "Original", g_ThreshholdSrc, 450, 50, 50 );
-    Threshhold( 0, 0 );
+    ShowImageWithFixedWidthAtPosition( "Original", g_ThresholdSrc, 450, 50, 50 );
+    Threshold( 0, 0 );
 }
 
-void Threshhold(int, void*)
+void Threshold(int, void*)
 {
-    int threshholdType = THRESH_BINARY;
-    if( g_TBThreshholdType == 0 )        { threshholdType = THRESH_BINARY; }
-    else if( g_TBThreshholdType == 1 )   { threshholdType = THRESH_BINARY_INV; }
-    else if( g_TBThreshholdType == 2 )   { threshholdType = THRESH_TRUNC; }
-    else if( g_TBThreshholdType == 3 )   { threshholdType = THRESH_TOZERO; }
-    else if( g_TBThreshholdType == 4 )   { threshholdType = THRESH_TOZERO_INV; }
-    //else if( g_TBThreshholdType == 5 )   { threshholdType = THRESH_MASK; }
+    int thresholdType = THRESH_BINARY;
+    if( g_TBThresholdType == 0 )        { thresholdType = THRESH_BINARY; }
+    else if( g_TBThresholdType == 1 )   { thresholdType = THRESH_BINARY_INV; }
+    else if( g_TBThresholdType == 2 )   { thresholdType = THRESH_TRUNC; }
+    else if( g_TBThresholdType == 3 )   { thresholdType = THRESH_TOZERO; }
+    else if( g_TBThresholdType == 4 )   { thresholdType = THRESH_TOZERO_INV; }
+    //else if( g_TBThresholdType == 5 )   { thresholdType = THRESH_MASK; }
 
     // Apply the threshold.
-    threshold( g_ThreshholdSrc, g_ThreshholdDst, g_TBThreshholdValue, 255, threshholdType );
-    //threshold( g_ThreshholdSrc, g_ThreshholdDst, g_TBThreshholdValue, 255, threshholdType | THRESH_OTSU );
-    //threshold( g_ThreshholdSrc, g_ThreshholdDst, g_TBThreshholdValue, 255, threshholdType | THRESH_TRIANGLE );
+    threshold( g_ThresholdSrc, g_ThresholdDst, g_TBThresholdValue, 255, thresholdType );
+    //threshold( g_ThresholdSrc, g_ThresholdDst, g_TBThresholdValue, 255, thresholdType | THRESH_OTSU );
+    //threshold( g_ThresholdSrc, g_ThresholdDst, g_TBThresholdValue, 255, thresholdType | THRESH_TRIANGLE );
 
     // Display result and kernel.
-    ShowImageWithFixedWidthAtPosition( "Output", g_ThreshholdDst, 450, 50 + 450+10, 50 );
+    ShowImageWithFixedWidthAtPosition( "Output", g_ThresholdDst, 450, 50 + 450+10, 50 );
 }
