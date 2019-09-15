@@ -1,4 +1,5 @@
-#include "opencv2/opencv.hpp"
+#include "OpenCVPCH.h"
+
 #include "Helpers.h"
 
 using namespace cv;

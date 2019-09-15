@@ -1,0 +1,3 @@
+[submodule "Libraries/Framework"]
+	path = Libraries/Framework
+	url = https://github.com/JimmyLord/MyFramework.git

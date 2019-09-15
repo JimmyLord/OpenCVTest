@@ -1,27 +1,10 @@
-#include <Windows.h>
-#include "opencv2/opencv.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/imgproc.hpp"
-#include "Helpers.h"
+#include "OpenCVPCH.h"
+
+#include "Core/OpenCVCore.h"
+#include "Utility/Helpers.h"
+#include "Tests/Tests.h"
 
 using namespace cv;
-
-void TestSimpleModification();
-void TestDFT();
-void TestVideo();
-void TestMorph();
-void TestThreshold();
-
-int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
-{
-    //TestSimpleModification();
-    //TestDFT();
-    //TestVideo();
-    //TestMorph();
-    TestThreshold();
-
-    waitKey();
-}
 
 void TestSimpleModification()
 {
