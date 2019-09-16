@@ -1,3 +1,9 @@
 [submodule "Libraries/Framework"]
 	path = Libraries/Framework
 	url = https://github.com/JimmyLord/MyFramework.git
+[submodule "Libraries/Engine"]
+	path = Libraries/Engine
+	url = https://github.com/JimmyLord/MyEngine.git
+[submodule "Libraries/SharedGameCode"]
+	path = Libraries/SharedGameCode
+	url = https://github.com/JimmyLord/SharedGameCode.git

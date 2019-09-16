@@ -1,3 +1,6 @@
+//
+// Copyright (c) 2019 Jimmy Lord http://www.flatheadgames.com
+//
 #ifndef __VectorTypes_H__
 #define __VectorTypes_H__
 

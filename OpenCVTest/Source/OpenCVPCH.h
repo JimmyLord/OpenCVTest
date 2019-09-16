@@ -1,5 +1,10 @@
+//
+// Copyright (c) 2019 Jimmy Lord http://www.flatheadgames.com
+//
+
 // Framework Headers
 #include "Libraries/Framework/MyFramework/SourceCommon/MyFramework.h"
+#include "Libraries/Engine/MyEngine/SourceCommon/MyEngine.h"
 
 // OpenCV headers, with the warnings disabled that are enabled by the framework headers.
 #pragma warning( push )

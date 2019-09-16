@@ -1,3 +1,6 @@
+//
+// Copyright (c) 2019 Jimmy Lord http://www.flatheadgames.com
+//
 #ifndef __Helpers_H__
 #define __Helpers_H__
 
