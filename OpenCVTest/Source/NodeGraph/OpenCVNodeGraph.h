@@ -9,27 +9,6 @@
 
 class OpenCVNodeTypeManager;
 
-const ImU32 COLOR_BG = IM_COL32( 60, 60, 70, 200 );
-const ImU32 COLOR_GRID = IM_COL32( 200, 200, 200, 40 );
-
-const ImU32 COLOR_DRAG_SELECTOR = IM_COL32( 60, 200, 60, 75 );
-
-const ImU32 COLOR_LINK_NORMAL = IM_COL32( 200, 200, 100, 255 );
-const ImU32 COLOR_LINK_HIGHLIGHTED = IM_COL32( 100, 100, 200, 255 );
-const ImU32 COLOR_LINK_SELECTED = IM_COL32( 0, 0, 255, 255 );
-
-const ImU32 COLOR_LINK_IN_PROGRESS_DEFAULT = IM_COL32( 100, 100, 100, 255 );
-const ImU32 COLOR_LINK_IN_PROGRESS_INVALID = IM_COL32( 200, 100, 100, 255 );
-const ImU32 COLOR_LINK_IN_PROGRESS_VALID = IM_COL32( 100, 200, 100, 255 );
-
-const ImU32 COLOR_SLOT_HOVERED = IM_COL32( 0, 255, 0, 255 );
-const ImU32 COLOR_SLOT_DEFAULT = IM_COL32( 150, 150, 150, 255 );
-
-const ImU32 COLOR_NODE_TRIM = IM_COL32( 0, 0, 0, 255 );
-const ImU32 COLOR_NODE_BG_TITLE = IM_COL32( 60, 20, 150, 230 );
-const ImU32 COLOR_NODE_BG = IM_COL32( 25, 0, 79, 230 );
-const ImU32 COLOR_NODE_BG_SELECTED_BORDER = IM_COL32( 245, 142, 0, 128 );
-
 class OpenCVNodeGraph : public EditorDocument
 {
 public:
@@ -107,6 +86,8 @@ protected:
 
     Vector2 m_ScrollOffset;
     bool m_GridVisible;
+    float m_ImageSize;
+    bool m_AutoRun;
 
     MouseNodeLinkStartPoint m_MouseNodeLinkStartPoint;
 
@@ -133,9 +114,9 @@ protected:
     void RemoveExistingNode(OpenCVNode* pNode);
 
     // File IO.
-    virtual const char* GetFileExtension() { return ".myvisualscript"; };
-    virtual const char* GetDefaultDataFolder() { return "DataSource\\VisualScripts\\"; };
-    virtual const char* GetDefaultFileSaveFilter() { return "VisualScript Files=*.myvisualscript"; };
+    virtual const char* GetFileExtension() { return ".opencvnodegraph"; };
+    virtual const char* GetDefaultDataFolder() { return "Data\\NodeGraphs\\"; };
+    virtual const char* GetDefaultFileSaveFilter() { return "OpenCV NodeGraph Files=*.opencvnodegraph"; };
 
 public:
     OpenCVNodeGraph(EngineCore* pEngineCore, OpenCVNodeTypeManager* pNodeTypeManager);
@@ -152,17 +133,20 @@ public:
     OpenCVNode* FindNodeConnectedToOutput(NodeID nodeID, SlotID slotID, int resultIndex = 0);
 
     NodeID GetNextNodeIDAndIncrement();
+
+    float GetImageSize() { return m_ImageSize; }
+    bool GetAutoRun() { return m_AutoRun; }
 };
 
 //====================================================================================================
 
-class OpenCVNodeTypeManager
+class OpenCVBaseNodeTypeManager
 {
 protected:
     OpenCVNodeGraph* m_pNodeGraph;
 
 public:
-    OpenCVNodeTypeManager() {}
+    OpenCVBaseNodeTypeManager() {}
 
     virtual OpenCVNodeGraph::OpenCVNode* AddCreateNodeItemsToContextMenu(Vector2 pos, OpenCVNodeGraph* pNodeGraph) = 0;
     virtual OpenCVNodeGraph::OpenCVNode* CreateNode(const char* typeName, Vector2 pos, OpenCVNodeGraph* pNodeGraph) = 0;

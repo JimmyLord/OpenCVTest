@@ -13,4 +13,7 @@ void ShowDFTResult(const cv::String windowName, cv::Mat& image, int width, int p
 
 void ShiftTopLeftToCenter(cv::Mat& image);
 
+void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture);
+TextureDefinition* CreateOrUpdateTextureDefinitionFromOpenCVMat(cv::Mat* pImage, TextureDefinition* pOldTexture = nullptr);
+
 #endif //__Helpers_H__

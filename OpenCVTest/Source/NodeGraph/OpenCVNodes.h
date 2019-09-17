@@ -5,89 +5,137 @@
 #define __OpenCVNodes_H__
 
 #include "OpenCVNode.h"
+#include "Utility/Helpers.h"
 
 class ComponentBase;
 
-// Visual Script node types.
-class OpenCVNode_Value_Float;
-class OpenCVNode_Value_Color;
-class OpenCVNode_Value_GameObject;
-class OpenCVNode_Value_Component;
-class OpenCVNode_MathOp_Add;
-class OpenCVNode_Condition_GreaterEqual;
-class OpenCVNode_Condition_Keyboard;
-class OpenCVNode_Event_Keyboard;
-class OpenCVNode_Disable_GameObject;
+// OpenCV node types.
+class OpenCVNode_Input_File;
+class OpenCVNode_Convert_Grayscale;
+class OpenCVNode_Filter_Threshold;
+class OpenCVNode_Filter_Bilateral;
 
 //====================================================================================================
 // OpenCVNode
 //====================================================================================================
 
-class OpenCVNode : public OpenCVNodeGraph::OpenCVNode
+class OpenCVBaseNode : public OpenCVNodeGraph::OpenCVNode
 {
 public:
-    OpenCVNode(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int inputsCount, int outputsCount)
+    OpenCVBaseNode(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int inputsCount, int outputsCount)
     : OpenCVNodeGraph::OpenCVNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
     {
     }
 
-    virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) { return 0; }
+    //virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) { return 0; }
 
-    virtual float GetValueFloat() { return FLT_MAX; }
+    virtual cv::Mat* GetValueMat() { return nullptr; }
+
+    void QuickRun()
+    {
+        if( m_pNodeGraph->GetAutoRun() ) 
+        {
+            Trigger( nullptr );
+        }
+    }
 };
 
 #define VSNAddVar ComponentBase::AddVariable_Base
 #define VSNAddVarEnum ComponentBase::AddVariableEnum_Base
 
 //====================================================================================================
-// OpenCVNode_Value_Float
+// OpenCVNode_Input_File
 //====================================================================================================
 
-class OpenCVNode_Value_Float : public OpenCVNode
+class OpenCVNode_Input_File : public OpenCVBaseNode
 {
 protected:
-    float m_Float;
+    cv::Mat m_Image;
+    TextureDefinition* m_pTexture;
+    std::string m_Filename;
 
 public:
-    OpenCVNode_Value_Float(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, float value)
-    : OpenCVNode( pNodeGraph, id, name, pos, 0, 1 )
+    OpenCVNode_Input_File(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
+    : OpenCVBaseNode( pNodeGraph, id, name, pos, 0, 1 )
     {
-        m_Float = value;
-        VSNAddVar( &m_VariablesList, "Float", ComponentVariableType_Float, MyOffsetOf( this, &this->m_Float ), true, true, "", nullptr, nullptr, nullptr );
+        m_Filename = "Data/test.png";
+        m_pTexture = nullptr;
+        //VSNAddVar( &m_VariablesList, "Float", ComponentVariableType_Float, MyOffsetOf( this, &this->m_Float ), true, true, "", nullptr, nullptr, nullptr );
     }
 
-    const char* GetType() { return "Value_Float"; }
-    virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) override;
+    ~OpenCVNode_Input_File()
+    {
+        SAFE_RELEASE( m_pTexture );
+    }
+
+    const char* GetType() { return "Input_File"; }
+    //virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) override;
 
     virtual void DrawTitle() override
     {
         if( m_Expanded )
             OpenCVNode::DrawTitle();
         else
-            ImGui::Text( "%s: %0.2f", m_Name, m_Float );
+            ImGui::Text( "%s: %s", m_Name, m_Filename.c_str() );
     }
 
-    virtual float GetValueFloat() override { return m_Float; }
+    virtual void DrawContents() override
+    {
+        OpenCVNode::DrawContents();
+
+        ImGui::Text( "Filename: %s", m_Filename.c_str() );
+
+        if( m_pTexture != nullptr )
+        {
+            ImGui::Image( (void*)m_pTexture, ImVec2( m_pNodeGraph->GetImageSize(),m_pNodeGraph->GetImageSize() ) );
+        }
+    }
+
+    virtual bool Trigger(MyEvent* pEvent) override
+    {
+        //OpenCVNode::Trigger( pEvent );
+
+        // Load the file from disk.
+        m_Image = cv::imread( m_Filename.c_str() );
+        m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
+
+        // Trigger the output nodes.
+        int count = 0;
+        while( OpenCVNode* pNode = (OpenCVNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 0, count++ ) )
+        {
+            pNode->Trigger();
+        }
+
+        return false;
+    }
+
+    virtual cv::Mat* GetValueMat() override { return &m_Image; }
 };
 
 //====================================================================================================
-// OpenCVNode_Value_Color
+// OpenCVNode_Convert_Grayscale
 //====================================================================================================
 
-class OpenCVNode_Value_Color : public OpenCVNode
+class OpenCVNode_Convert_Grayscale : public OpenCVBaseNode
 {
 protected:
-    ColorByte m_Color;
+    cv::Mat m_Image;
+    TextureDefinition* m_pTexture;
 
 public:
-    OpenCVNode_Value_Color(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, const ColorByte& color)
-    : OpenCVNode( pNodeGraph, id, name, pos, 0, 1 )
+    OpenCVNode_Convert_Grayscale(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
+    : OpenCVBaseNode( pNodeGraph, id, name, pos, 1, 1 )
     {
-        m_Color = color;
-        VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
+        m_pTexture = nullptr;
+        //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
     }
 
-    const char* GetType() { return "Value_Color"; }
+    ~OpenCVNode_Convert_Grayscale()
+    {
+        SAFE_RELEASE( m_pTexture );
+    }
+
+    const char* GetType() { return "Convert_Grayscale"; }
 
     virtual void DrawTitle() override
     {
@@ -98,322 +146,82 @@ public:
         else
         {
             ImGui::Text( "%s", m_Name );
-            ImGui::SameLine();
-            ImVec4 color = *(ImVec4*)&m_Color.AsColorFloat();
-            ImGui::ColorButton( "", color, ImGuiColorEditFlags_NoPicker );
         }
     }
-};
-
-//====================================================================================================
-// OpenCVNode_Value_GameObject
-//====================================================================================================
-
-class OpenCVNode_Value_GameObject : public OpenCVNode
-{
-protected:
-    GameObject* m_pGameObject;
-
-public:
-    OpenCVNode_Value_GameObject(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, GameObject* pGameObject)
-    : OpenCVNode( pNodeGraph, id, name, pos, 0, 1 )
-    {
-        m_pGameObject = pGameObject;
-        VSNAddVar( &m_VariablesList, "GameObject", ComponentVariableType_GameObjectPtr, MyOffsetOf( this, &this->m_pGameObject ), true, true, "",
-            (CVarFunc_ValueChanged)&OpenCVNode_Value_GameObject::OnValueChanged,
-            (CVarFunc_DropTarget)&OpenCVNode_Value_GameObject::OnDrop, nullptr );
-    }
-
-    const char* GetType() { return "Value_GameObject"; }
-
-    void* OnDrop(ComponentVariable* pVar, bool changedByInterface, int x, int y)
-    {
-        DragAndDropItem* pDropItem = g_DragAndDropStruct.GetItem( 0 );
-
-        if( pDropItem->m_Type == DragAndDropType_GameObjectPointer )
-        {
-            m_pGameObject = (GameObject*)pDropItem->m_Value;
-        }
-
-        return nullptr;
-    }
-
-    void* OnValueChanged(ComponentVariable* pVar, bool changedByInterface, bool finishedChanging, double oldValue, ComponentVariableValue* pNewValue)
-    {
-        return nullptr;
-    }
-};
-
-//====================================================================================================
-// OpenCVNode_Value_Component
-//====================================================================================================
-
-class OpenCVNode_Value_Component : public OpenCVNode
-{
-protected:
-    ComponentBase* m_pComponent;
-
-public:
-    OpenCVNode_Value_Component(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, ComponentBase* pComponent)
-    : OpenCVNode( pNodeGraph, id, name, pos, 0, 1 )
-    {
-        m_pComponent = pComponent;
-        VSNAddVar( &m_VariablesList, "Component", ComponentVariableType_ComponentPtr, MyOffsetOf( this, &this->m_pComponent ), true, true, "",
-            (CVarFunc_ValueChanged)&OpenCVNode_Value_Component::OnValueChanged,
-            (CVarFunc_DropTarget)&OpenCVNode_Value_Component::OnDrop, nullptr );
-    }
-
-    const char* GetType() { return "Value_Component"; }
-
-    void* OnDrop(ComponentVariable* pVar, bool changedByInterface, int x, int y)
-    {
-        DragAndDropItem* pDropItem = g_DragAndDropStruct.GetItem( 0 );
-
-        if( pDropItem->m_Type == DragAndDropType_ComponentPointer )
-        {
-            m_pComponent = (ComponentBase*)pDropItem->m_Value;
-        }
-
-        return nullptr;
-    }
-
-    void* OnValueChanged(ComponentVariable* pVar, bool changedByInterface, bool finishedChanging, double oldValue, ComponentVariableValue* pNewValue)
-    {
-        return nullptr;
-    }
-};
-
-//====================================================================================================
-// OpenCVNode_MathOp_Add
-//====================================================================================================
-
-class OpenCVNode_MathOp_Add : public OpenCVNode
-{
-protected:
-public:
-    OpenCVNode_MathOp_Add(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
-    : OpenCVNode( pNodeGraph, id, name, pos, 2, 1 ) {}
-
-    const char* GetType() { return "MathOp_Add"; }
-    virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) override;
 
     virtual void DrawContents() override
     {
         OpenCVNode::DrawContents();
 
-        ImGui::Text( "+" );
-    }
-
-    virtual float GetValueFloat() override
-    {
-        OpenCVNode* pNode1 = static_cast<OpenCVNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
-        OpenCVNode* pNode2 = static_cast<OpenCVNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 1 ) );
-
-        if( pNode1 == nullptr || pNode2 == nullptr )
-            return FLT_MAX;
-
-        float value1 = pNode1->GetValueFloat();
-        float value2 = pNode2->GetValueFloat();
-
-        return value1 + value2;
-    }
-};
-
-//====================================================================================================
-// OpenCVNode_OpenCVNode_Condition_GreaterEqual
-//====================================================================================================
-
-class OpenCVNode_Condition_GreaterEqual : public OpenCVNode
-{
-protected:
-public:
-    OpenCVNode_Condition_GreaterEqual(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
-    : OpenCVNode( pNodeGraph, id, name, pos, 3, 2 ) {}
-
-    const char* GetType() { return "Condition_GreaterEqual"; }
-    virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) override;
-
-    virtual void DrawContents() override
-    {
-        OpenCVNode::DrawContents();
-
-        ImGui::Text( ">=" );
+        if( m_pTexture != nullptr )
+        {
+            ImGui::Image( (void*)m_pTexture, ImVec2( m_pNodeGraph->GetImageSize(),m_pNodeGraph->GetImageSize() ) );
+        }
     }
 
     virtual bool Trigger(MyEvent* pEvent) override
     {
-        OpenCVNode* pNode1 = static_cast<OpenCVNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 1 ) );
-        OpenCVNode* pNode2 = static_cast<OpenCVNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 2 ) );
+        //OpenCVNode::Trigger( pEvent );
 
-        if( pNode1 == nullptr || pNode2 == nullptr )
-            return false;
+        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
+        cv::Mat* pImage = pNode->GetValueMat();
 
-        float value1 = pNode1->GetValueFloat();
-        float value2 = pNode2->GetValueFloat();
+        // Convert to grayscale.
+        cv::cvtColor( *pImage, m_Image, cv::COLOR_BGR2GRAY );
+        m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
-        if( value1 >= value2 )
-        {
-            int count = 0;
-            while( OpenCVNode* pNode = (OpenCVNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 0, count++ ) )
-            {
-                pNode->Trigger();
-            }
-        }
-        else
-        {
-            int count = 0;
-            while( OpenCVNode* pNode = (OpenCVNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 1, count++ ) )
-            {
-                pNode->Trigger();
-            }
-        }
-
-        return false;
-    }
-};
-
-//====================================================================================================
-// OpenCVNode_Condition_Keyboard
-//====================================================================================================
-
-class OpenCVNode_Condition_Keyboard : public OpenCVNode
-{
-protected:
-    int m_ButtonAction;
-    int m_KeyCode;
-
-public:
-    OpenCVNode_Condition_Keyboard(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int buttonAction, int keyCode)
-    : OpenCVNode( pNodeGraph, id, name, pos, 1, 1 )
-    {
-        MyAssert( GCBA_Down == 0 );
-        MyAssert( GCBA_Up == 1 );
-        MyAssert( GCBA_Held == 2 );
-
-        m_ButtonAction = buttonAction;
-        m_KeyCode = keyCode;
-
-        VSNAddVarEnum( &m_VariablesList, "Action", MyOffsetOf( this, &this->m_ButtonAction ), true, true, "", 3, g_GameCoreButtonActionStrings, nullptr, nullptr, nullptr );
-        VSNAddVar( &m_VariablesList, "KeyCode", ComponentVariableType_Int, MyOffsetOf( this, &this->m_KeyCode ), true, true, "", nullptr, nullptr, nullptr );
-    }
-
-    const char* GetType() { return "Condition_Keyboard"; }
-    virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) override;
-
-    virtual void DrawTitle() override
-    {
-        if( m_Expanded )
-            OpenCVNode::DrawTitle();
-        else
-            ImGui::Text( "%s: %c %s", m_Name, m_KeyCode, g_GameCoreButtonActionStrings[m_ButtonAction] );
-    }
-
-    virtual void DrawContents() override
-    {
-        OpenCVNode::DrawContents();
-
-        ImGui::Text( "Key: %c", m_KeyCode );
-    }
-
-    virtual bool Trigger(MyEvent* pEvent) override
-    {
-        MyAssert( pEvent->IsType( "Keyboard" ) );
-
-        int action = pEvent->GetInt( "Action" );
-        int keyCode = pEvent->GetInt( "KeyCode" );
-
-        if( action == m_ButtonAction && keyCode == m_KeyCode )
-        {
-            int count = 0;
-            while( OpenCVNode* pNode = (OpenCVNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 0, count++ ) )
-            {
-                if( pNode->Trigger() == true )
-                    return true;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-};
-
-//====================================================================================================
-// OpenCVNode_Event_Keyboard
-//====================================================================================================
-
-class OpenCVNode_Event_Keyboard : public OpenCVNode
-{
-protected:
-    EventManager* m_pEventManager;
-
-public:
-    OpenCVNode_Event_Keyboard(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, EventManager* pEventManager)
-    : OpenCVNode( pNodeGraph, id, name, pos, 0, 1 )
-    {
-        m_pEventManager = pEventManager;
-
-        // Don't allow node graph to be triggered directly.
-        // This will now get triggered through lua script when attached to an object.
-        m_pEventManager->RegisterForEvents( "Keyboard", this, &OpenCVNode_Event_Keyboard::StaticOnEvent );
-    }
-
-    ~OpenCVNode_Event_Keyboard()
-    {
-        m_pEventManager->UnregisterForEvents( "Keyboard", this, &OpenCVNode_Event_Keyboard::StaticOnEvent );
-    }
-
-    const char* GetType() { return "Event_Keyboard"; }
-    virtual uint32 ExportAsLuaString(char* string, uint32 offset, uint32 bytesAllocated) override;
-
-    virtual void DrawTitle() override
-    {
-        OpenCVNode::DrawTitle();
-    }
-
-    virtual void DrawContents() override
-    {
-        OpenCVNode::DrawContents();
-    }
-
-    static bool StaticOnEvent(void* pObjectPtr, MyEvent* pEvent) { return ((OpenCVNode_Event_Keyboard*)pObjectPtr)->OnEvent( pEvent ); }
-    bool OnEvent(MyEvent* pEvent)
-    {
-        MyAssert( pEvent->IsType( "Keyboard" ) );
-
+        // Trigger the ouput nodes.
         int count = 0;
         while( OpenCVNode* pNode = (OpenCVNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 0, count++ ) )
         {
-            if( pNode->Trigger( pEvent ) == true )
-                return true;
+            pNode->Trigger();
         }
 
         return false;
     }
+
+    virtual cv::Mat* GetValueMat() override { return &m_Image; }
 };
 
 //====================================================================================================
-// OpenCVNode_Disable_GameObject
+// OpenCVNode_Filter_Threshold
 //====================================================================================================
 
-class OpenCVNode_Disable_GameObject : public OpenCVNode
+class OpenCVNode_Filter_Threshold : public OpenCVBaseNode
 {
 protected:
-    GameObject* m_pGameObject;
+    cv::Mat m_Image;
+    TextureDefinition* m_pTexture;
+    float m_ThresholdValue;
+    int m_ThresholdType;
+
+    const char* ThresholdTypeNames[5] = 
+    {
+        "Binary",
+        "Binary Inverse",
+        "Truncate",
+        "To Zero",
+        "To Zero Inverse",
+    };
+
+    const int ThresholdTypeMax = 5;
 
 public:
-    OpenCVNode_Disable_GameObject(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, GameObject* pGameObject)
-    : OpenCVNode( pNodeGraph, id, name, pos, 1, 0 )
+    OpenCVNode_Filter_Threshold(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
+        : OpenCVBaseNode( pNodeGraph, id, name, pos, 1, 1 )
     {
-        m_pGameObject = pGameObject;
-        VSNAddVar( &m_VariablesList, "GameObject", ComponentVariableType_GameObjectPtr, MyOffsetOf( this, &this->m_pGameObject ), true, true, "",
-            (CVarFunc_ValueChanged)&OpenCVNode_Disable_GameObject::OnValueChanged,
-            (CVarFunc_DropTarget)&OpenCVNode_Disable_GameObject::OnDrop, nullptr );
+        m_pTexture = nullptr;
+        m_ThresholdValue = 0;
+        m_ThresholdType = 0;
+        //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
     }
 
-    const char* GetType() { return "Disable_GameObject"; }
-    virtual uint32 ExportAsLuaVariablesString(char* string, uint32 offset, uint32 bytesAllocated) override;
-    virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) override;
+    ~OpenCVNode_Filter_Threshold()
+    {
+        SAFE_RELEASE( m_pTexture );
+    }
+
+    const char* GetType() { return "Filter_Threshold"; }
 
     virtual void DrawTitle() override
     {
@@ -423,39 +231,145 @@ public:
         }
         else
         {
-            if( m_pGameObject )
-                ImGui::Text( "%s: %s", m_Name, m_pGameObject->GetName() );
-            else
-                ImGui::Text( "%s: not set" );
+            ImGui::Text( "%s", m_Name );
         }
     }
 
-    void* OnDrop(ComponentVariable* pVar, bool changedByInterface, int x, int y)
+    virtual void DrawContents() override
     {
-        DragAndDropItem* pDropItem = g_DragAndDropStruct.GetItem( 0 );
+        OpenCVNode::DrawContents();
 
-        if( pDropItem->m_Type == DragAndDropType_GameObjectPointer )
+        if( ImGui::DragFloat( "Value", &m_ThresholdValue, 1.0f, 0.0f, 255.0f ) )             { QuickRun(); }
+        //if( ImGui::ListBox( "Type", &m_ThresholdType, ThresholdTypeNames, ThresholdTypeMax ) ) { QuickRun(); }
+        
+        if( ImGui::BeginCombo( "Type", ThresholdTypeNames[m_ThresholdType] ) )
         {
-            m_pGameObject = (GameObject*)pDropItem->m_Value;
+            for( int n = 0; n < ThresholdTypeMax; n++ )
+            {
+                bool is_selected = (n == m_ThresholdType);
+                if( ImGui::Selectable( ThresholdTypeNames[n], is_selected ) )
+                {
+                    m_ThresholdType = n;
+                    QuickRun();
+                }
+                if( is_selected )
+                {
+                    // Set the initial focus when opening the combo (scrolling + for keyboard navigation support in the upcoming navigation branch)
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
         }
 
-        return nullptr;
-    }
-
-    void* OnValueChanged(ComponentVariable* pVar, bool changedByInterface, bool finishedChanging, double oldValue, ComponentVariableValue* pNewValue)
-    {
-        return nullptr;
+        if( m_pTexture != nullptr )
+        {
+            ImGui::Image( (void*)m_pTexture, ImVec2( m_pNodeGraph->GetImageSize(),m_pNodeGraph->GetImageSize() ) );
+        }
     }
 
     virtual bool Trigger(MyEvent* pEvent) override
     {
-        if( m_pGameObject )
+        //OpenCVNode::Trigger( pEvent );
+
+        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
+        cv::Mat* pImage = pNode->GetValueMat();
+
+        // Apply the threshold filter.
+        cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, m_ThresholdType );
+        m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
+
+        // Trigger the ouput nodes.
+        int count = 0;
+        while( OpenCVNode* pNode = (OpenCVNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 0, count++ ) )
         {
-            m_pGameObject->SetEnabled( !m_pGameObject->IsEnabled(), true );
+            pNode->Trigger();
         }
 
         return false;
     }
+
+    virtual cv::Mat* GetValueMat() override { return &m_Image; }
+};
+
+//====================================================================================================
+// OpenCVNode_Filter_Bilateral
+//====================================================================================================
+
+class OpenCVNode_Filter_Bilateral : public OpenCVBaseNode
+{
+protected:
+    cv::Mat m_Image;
+    TextureDefinition* m_pTexture;
+    int m_WindowSize;
+    float m_SigmaColor;
+    float m_SigmaSpace;
+
+public:
+    OpenCVNode_Filter_Bilateral(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
+        : OpenCVBaseNode( pNodeGraph, id, name, pos, 1, 1 )
+    {
+        m_pTexture = nullptr;
+        m_WindowSize = 3;
+        m_SigmaColor = 150.0f;
+        m_SigmaSpace = 150.0f;
+        //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
+    }
+
+    ~OpenCVNode_Filter_Bilateral()
+    {
+        SAFE_RELEASE( m_pTexture );
+    }
+
+    const char* GetType() { return "Filter_Bilateral"; }
+
+    virtual void DrawTitle() override
+    {
+        if( m_Expanded )
+        {
+            OpenCVNode::DrawTitle();
+        }
+        else
+        {
+            ImGui::Text( "%s", m_Name );
+        }
+    }
+
+    virtual void DrawContents() override
+    {
+        OpenCVNode::DrawContents();
+
+        if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun(); }
+        if( ImGui::DragFloat( "Sigma Color", &m_SigmaColor, 1.0f, 0.0f, 255.0f ) ) { QuickRun(); }
+        if( ImGui::DragFloat( "Sigma Space", &m_SigmaSpace, 1.0f, 0.0f, 255.0f ) ) { QuickRun(); }
+
+        if( m_pTexture != nullptr )
+        {
+            ImGui::Image( (void*)m_pTexture, ImVec2( m_pNodeGraph->GetImageSize(),m_pNodeGraph->GetImageSize() ) );
+        }
+    }
+
+    virtual bool Trigger(MyEvent* pEvent) override
+    {
+        //OpenCVNode::Trigger( pEvent );
+
+        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
+        cv::Mat* pImage = pNode->GetValueMat();
+
+        // Apply the Bilateral filter.
+        cv::bilateralFilter( *pImage, m_Image, m_WindowSize, m_SigmaColor, m_SigmaSpace );
+        m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
+
+        // Trigger the ouput nodes.
+        int count = 0;
+        while( OpenCVNode* pNode = (OpenCVNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 0, count++ ) )
+        {
+            pNode->Trigger();
+        }
+
+        return false;
+    }
+
+    virtual cv::Mat* GetValueMat() override { return &m_Image; }
 };
 
 #endif //__OpenCVNodes_H__

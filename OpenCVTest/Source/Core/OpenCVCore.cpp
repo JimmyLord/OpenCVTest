@@ -6,6 +6,7 @@
 #include "OpenCVCore.h"
 #include "Tests/Tests.h"
 #include "NodeGraph/OpenCVNodeGraph.h"
+#include "NodeGraph/OpenCVNodeTypeManager.h"
 
 OpenCVCore::OpenCVCore()
 {
@@ -16,6 +17,8 @@ OpenCVCore::OpenCVCore()
 
 OpenCVCore::~OpenCVCore()
 {
+    delete m_pNodeGraph;
+    delete m_pNodeTypeManager;
     delete m_pImGuiManager;
 }
 
@@ -35,7 +38,7 @@ void OpenCVCore::OneTimeInit()
         m_pImGuiManager->Init( (float)GetWindowWidth(), (float)GetWindowHeight() );
     }
 
-    //m_pNodeTypeManager = MyNew OpenCVNodeTypeManager();
+    m_pNodeTypeManager = MyNew OpenCVNodeTypeManager();
 }
 
 //====================================================================================================
@@ -110,7 +113,7 @@ void OpenCVCore::OnDrawFrame(unsigned int canvasid)
 
     if( m_pNodeGraph )
     {
-        ImGui::SetNextWindowSize( ImVec2(400, 400), ImGuiSetCond_FirstUseEver );
+        ImGui::SetNextWindowSize( ImVec2(1000, 550), ImGuiSetCond_FirstUseEver );
         bool documentStillOpen = true;
         m_pNodeGraph->CreateWindowAndUpdate( &documentStillOpen );
     }

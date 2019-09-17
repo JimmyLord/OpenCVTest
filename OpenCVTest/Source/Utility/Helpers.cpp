@@ -3,6 +3,7 @@
 //
 #include "OpenCVPCH.h"
 
+#include "Libraries/Framework/MyFramework/SourceCommon/Renderers/OpenGL/Texture_OpenGL.h"
 #include "Helpers.h"
 
 using namespace cv;
@@ -74,4 +75,59 @@ void ShiftTopLeftToCenter(cv::Mat& image)
     q1.copyTo( tmp );
     q2.copyTo( q1 );
     tmp.copyTo( q2 );
+}
+
+// From https://gist.github.com/zhangzhensong/03f67947c22acb5ee922
+void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture)
+{
+    if( image.empty() )
+    {
+        //std::cout << "image empty" << std::endl;
+    }
+    else
+    {
+        //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+        
+        if( imageTexture == 0 )
+        {
+            glGenTextures( 1, &imageTexture );
+        }
+
+        glBindTexture( GL_TEXTURE_2D, imageTexture );
+
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
+
+        cv::cvtColor( image, image, COLOR_RGB2BGR );
+
+        glTexImage2D( GL_TEXTURE_2D,       // Type of texture
+                      0,                   // Pyramid level (for mip-mapping) - 0 is the top level
+                      GL_RGB,              // Internal colour format to convert to
+                      image.cols,          // Image width  i.e. 640 for Kinect in standard mode
+                      image.rows,          // Image height i.e. 480 for Kinect in standard mode
+                      0,                   // Border width in pixels (can either be 1 or 0)
+                      GL_RGB,              // Input image format (i.e. GL_RGB, GL_RGBA, GL_BGR etc.)
+                      GL_UNSIGNED_BYTE,    // Image data type
+                      image.ptr());        // The actual image data itself
+    }
+}
+
+TextureDefinition* CreateOrUpdateTextureDefinitionFromOpenCVMat(cv::Mat* pImage, TextureDefinition* pOldTexture)
+{
+    if( pImage->empty() )
+        return pOldTexture;
+
+    GLuint textureID = 0;
+    if( pOldTexture != nullptr )
+        textureID = ((Texture_OpenGL*)pOldTexture)->GetTextureID();
+
+    BindCVMat2GLTexture( *pImage, textureID );
+
+    if( pOldTexture == nullptr )
+        pOldTexture = MyNew Texture_OpenGL( textureID );
+
+    return pOldTexture;
 }

@@ -6,6 +6,7 @@
 #include "OpenCVNodeGraph.h"
 #include "OpenCVNode.h"
 #include "OpenCVNodeGraphEditorCommands.h"
+#include "OpenCVNodeTypeManager.h"
 
 // Based on this: https://gist.github.com/ocornut/7e9b3ec566a333d725d4
 //   but rewritten and expanded.
@@ -79,6 +80,8 @@ OpenCVNodeGraph::OpenCVNodeGraph(EngineCore* pEngineCore, OpenCVNodeTypeManager*
 
     m_ScrollOffset.Set( 0.0f, 0.0f );
     m_GridVisible = true;
+    m_ImageSize = 200;
+    m_AutoRun = true;
     m_SelectedNodeLinkIndex = -1;
 
     m_MouseNodeLinkStartPoint.Clear();
@@ -314,11 +317,16 @@ void OpenCVNodeGraph::Update()
     // Create a child canvas for the node graph.
     ImGui::Text( "Scroll (%.2f,%.2f)", m_ScrollOffset.x, m_ScrollOffset.y );
     ImGui::SameLine();
-    if( ImGui::Checkbox( "Lua", &m_ShowingLuaString ) )
-    {
-        delete[] m_pLuaString;
-        m_pLuaString = ExportAsLuaString();
-    }
+    ImGui::Checkbox( "Auto Run", &m_AutoRun );
+    ImGui::SameLine();
+    ImGui::PushItemWidth( 100 );
+    ImGui::DragFloat( "Image Size", &m_ImageSize );
+    //ImGui::SameLine();
+    //if( ImGui::Checkbox( "Lua", &m_ShowingLuaString ) )
+    //{
+    //    delete[] m_pLuaString;
+    //    m_pLuaString = ExportAsLuaString();
+    //}
     ImGui::SameLine( ImGui::GetWindowWidth() - 300 );
     ImGui::Checkbox( "Show grid", &m_GridVisible );
 
@@ -500,6 +508,10 @@ void OpenCVNodeGraph::Update()
                             m_pCommandStack->Do( MyNew EditorCommand_OpenCVNodeGraph_DeleteNodes( this, m_SelectedNodeIDs ) );
                         }
                         if( ImGui::MenuItem( "Copy", nullptr, false, false ) ) {}
+                        if( ImGui::MenuItem( "Run", nullptr, false ) )
+                        {
+                            pNode->Trigger();
+                        }
                     }
                     else
                     {

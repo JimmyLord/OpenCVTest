@@ -21,7 +21,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 {
     GameCore* pGameCore = new OpenCVCore();
 
-    int result = MYFWWinMain( pGameCore, 800, 600 );
+    int result = MYFWWinMain( pGameCore, 1200, 700 );
 
     delete pGameCore;
 
