@@ -6,6 +6,7 @@
 
 #include "OpenCVNode.h"
 #include "Utility/Helpers.h"
+#include "Libraries/Engine/MyEngine/SourceEditor/PlatformSpecific/FileOpenDialog.h"
 
 class ComponentBase;
 
@@ -88,6 +89,20 @@ public:
         if( m_pTexture != nullptr )
         {
             ImGui::Image( (void*)m_pTexture, ImVec2( m_pNodeGraph->GetImageSize(),m_pNodeGraph->GetImageSize() ) );
+        }
+
+        if( ImGui::Button( "Choose File..." ) )
+        {
+            const char* filename = FileOpenDialog( "Data\\", "Images\0*.png;*.jpg\0All\0*.*\0" );
+            if( filename[0] != '\0' )
+            {
+                char path[MAX_PATH];
+                strcpy_s( path, MAX_PATH, filename );
+                const char* relativePath = GetRelativePath( path );
+
+                m_Filename = relativePath;
+                QuickRun();
+            }
         }
     }
 
