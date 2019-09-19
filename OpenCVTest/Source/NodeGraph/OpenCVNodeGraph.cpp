@@ -80,7 +80,7 @@ OpenCVNodeGraph::OpenCVNodeGraph(EngineCore* pEngineCore, OpenCVNodeTypeManager*
 
     m_ScrollOffset.Set( 0.0f, 0.0f );
     m_GridVisible = true;
-    m_ImageSize = 200;
+    m_ImageWidth = 200;
     m_AutoRun = true;
     m_SelectedNodeLinkIndex = -1;
 
@@ -320,7 +320,7 @@ void OpenCVNodeGraph::Update()
     ImGui::Checkbox( "Auto Run", &m_AutoRun );
     ImGui::SameLine();
     ImGui::PushItemWidth( 100 );
-    ImGui::DragFloat( "Image Size", &m_ImageSize );
+    ImGui::DragFloat( "Image Width", &m_ImageWidth );
     //ImGui::SameLine();
     //if( ImGui::Checkbox( "Lua", &m_ShowingLuaString ) )
     //{

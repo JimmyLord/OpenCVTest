@@ -84,10 +84,6 @@ public:
     {
         OpenCVNode::DrawContents();
 
-        ImGui::Text( "Filename: %s", m_Filename.c_str() );
-
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageSize() );
-
         if( ImGui::Button( "Choose File..." ) )
         {
             const char* filename = FileOpenDialog( "Data\\", "Images\0*.png;*.jpg\0All\0*.*\0" );
@@ -101,6 +97,15 @@ public:
                 QuickRun();
             }
         }
+
+        ImGui::Text( "Filename: %s", m_Filename.c_str() );
+        ImGui::Text( "Size: %dx%d", m_Image.cols, m_Image.rows );
+        if( ImGui::Button( "Zoom to native" ) )
+        {
+            m_pNodeGraph->SetImageWidth( (float)m_Image.cols );
+        }
+
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
     }
 
     virtual bool Trigger(MyEvent* pEvent) override
@@ -165,7 +170,7 @@ public:
     {
         OpenCVNode::DrawContents();
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageSize() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
     }
 
     virtual bool Trigger(MyEvent* pEvent) override
@@ -270,7 +275,7 @@ public:
             ImGui::EndCombo();
         }
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageSize() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
     }
 
     virtual bool Trigger(MyEvent* pEvent) override
@@ -348,7 +353,7 @@ public:
         if( ImGui::DragFloat( "Sigma Color", &m_SigmaColor, 1.0f, 0.0f, 255.0f ) ) { QuickRun(); }
         if( ImGui::DragFloat( "Sigma Space", &m_SigmaSpace, 1.0f, 0.0f, 255.0f ) ) { QuickRun(); }
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageSize() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
     }
 
     virtual bool Trigger(MyEvent* pEvent) override

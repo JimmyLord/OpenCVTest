@@ -86,7 +86,7 @@ protected:
 
     Vector2 m_ScrollOffset;
     bool m_GridVisible;
-    float m_ImageSize;
+    float m_ImageWidth;
     bool m_AutoRun;
 
     MouseNodeLinkStartPoint m_MouseNodeLinkStartPoint;
@@ -134,7 +134,8 @@ public:
 
     NodeID GetNextNodeIDAndIncrement();
 
-    float GetImageSize() { return m_ImageSize; }
+    float GetImageWidth() { return m_ImageWidth; }
+    void SetImageWidth(float height) { m_ImageWidth = height; }
     bool GetAutoRun() { return m_AutoRun; }
 };
 

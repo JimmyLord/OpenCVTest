@@ -98,7 +98,7 @@ void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture)
     {
         //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
         glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
-
+        
         if( imageTexture == 0 )
         {
             glGenTextures( 1, &imageTexture );
@@ -118,14 +118,14 @@ void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture)
         cv::copyMakeBorder( image, temp, 0, pow2rows - image.rows, 0, pow2cols - image.cols, BORDER_CONSTANT );
 
         glTexImage2D( GL_TEXTURE_2D,      // Type of texture
-            0,                  // Pyramid level (for mip-mapping) - 0 is the top level
-            GL_RGB,             // Internal colour format to convert to
-            temp.cols,          // Image width
-            temp.rows,          // Image height
-            0,                  // Border width in pixels (can either be 1 or 0)
-            GL_BGR,             // Input image format (i.e. GL_RGB, GL_RGBA, GL_BGR etc.)
-            GL_UNSIGNED_BYTE,   // Image data type
-            temp.ptr() );       // The actual image data itself
+                      0,                  // Pyramid level (for mip-mapping) - 0 is the top level
+                      GL_RGB,             // Internal colour format to convert to
+                      temp.cols,          // Image width
+                      temp.rows,          // Image height
+                      0,                  // Border width in pixels (can either be 1 or 0)
+                      GL_BGR,             // Input image format (i.e. GL_RGB, GL_RGBA, GL_BGR etc.)
+                      GL_UNSIGNED_BYTE,   // Image data type
+                      temp.ptr() );       // The actual image data itself
     }
 }
 
