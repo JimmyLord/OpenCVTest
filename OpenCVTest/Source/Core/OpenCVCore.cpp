@@ -7,7 +7,6 @@
 #include "Tests/Tests.h"
 #include "NodeGraph/OpenCVNodeGraph.h"
 #include "NodeGraph/OpenCVNodeTypeManager.h"
-#include "Classwork/ClassworkNodeTypeManager.h"
 
 OpenCVCore::OpenCVCore()
 {
@@ -39,7 +38,7 @@ void OpenCVCore::OneTimeInit()
         m_pImGuiManager->Init( (float)GetWindowWidth(), (float)GetWindowHeight() );
     }
 
-    m_pNodeTypeManager = MyNew ClassworkNodeTypeManager(); //OpenCVNodeTypeManager();
+    m_pNodeTypeManager = MyNew OpenCVNodeTypeManager();
 }
 
 //====================================================================================================
