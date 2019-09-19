@@ -24,7 +24,7 @@ class OpenCVBaseNode : public OpenCVNodeGraph::OpenCVNode
 {
 public:
     OpenCVBaseNode(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int inputsCount, int outputsCount)
-    : OpenCVNodeGraph::OpenCVNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
+        : OpenCVNodeGraph::OpenCVNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
     {
     }
 
@@ -57,7 +57,7 @@ protected:
 
 public:
     OpenCVNode_Input_File(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
-    : OpenCVBaseNode( pNodeGraph, id, name, pos, 0, 1 )
+        : OpenCVBaseNode( pNodeGraph, id, name, pos, 0, 1 )
     {
         m_Filename = "Data/test.png";
         m_pTexture = nullptr;
@@ -86,10 +86,7 @@ public:
 
         ImGui::Text( "Filename: %s", m_Filename.c_str() );
 
-        if( m_pTexture != nullptr )
-        {
-            ImGui::Image( (void*)m_pTexture, ImVec2( m_pNodeGraph->GetImageSize(),m_pNodeGraph->GetImageSize() ) );
-        }
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageSize() );
 
         if( ImGui::Button( "Choose File..." ) )
         {
@@ -139,7 +136,7 @@ protected:
 
 public:
     OpenCVNode_Convert_Grayscale(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
-    : OpenCVBaseNode( pNodeGraph, id, name, pos, 1, 1 )
+        : OpenCVBaseNode( pNodeGraph, id, name, pos, 1, 1 )
     {
         m_pTexture = nullptr;
         //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
@@ -168,10 +165,7 @@ public:
     {
         OpenCVNode::DrawContents();
 
-        if( m_pTexture != nullptr )
-        {
-            ImGui::Image( (void*)m_pTexture, ImVec2( m_pNodeGraph->GetImageSize(),m_pNodeGraph->GetImageSize() ) );
-        }
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageSize() );
     }
 
     virtual bool Trigger(MyEvent* pEvent) override
@@ -256,7 +250,7 @@ public:
 
         if( ImGui::DragFloat( "Value", &m_ThresholdValue, 1.0f, 0.0f, 255.0f ) )             { QuickRun(); }
         //if( ImGui::ListBox( "Type", &m_ThresholdType, ThresholdTypeNames, ThresholdTypeMax ) ) { QuickRun(); }
-        
+
         if( ImGui::BeginCombo( "Type", ThresholdTypeNames[m_ThresholdType] ) )
         {
             for( int n = 0; n < ThresholdTypeMax; n++ )
@@ -276,10 +270,7 @@ public:
             ImGui::EndCombo();
         }
 
-        if( m_pTexture != nullptr )
-        {
-            ImGui::Image( (void*)m_pTexture, ImVec2( m_pNodeGraph->GetImageSize(),m_pNodeGraph->GetImageSize() ) );
-        }
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageSize() );
     }
 
     virtual bool Trigger(MyEvent* pEvent) override
@@ -357,10 +348,7 @@ public:
         if( ImGui::DragFloat( "Sigma Color", &m_SigmaColor, 1.0f, 0.0f, 255.0f ) ) { QuickRun(); }
         if( ImGui::DragFloat( "Sigma Space", &m_SigmaSpace, 1.0f, 0.0f, 255.0f ) ) { QuickRun(); }
 
-        if( m_pTexture != nullptr )
-        {
-            ImGui::Image( (void*)m_pTexture, ImVec2( m_pNodeGraph->GetImageSize(),m_pNodeGraph->GetImageSize() ) );
-        }
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageSize() );
     }
 
     virtual bool Trigger(MyEvent* pEvent) override
