@@ -17,7 +17,7 @@ OpenCVNodeTypeManager::OpenCVNodeTypeManager()
 {
 }
 
-OpenCVNodeGraph::OpenCVNode* OpenCVNodeTypeManager::AddCreateNodeItemsToContextMenu(Vector2 pos, OpenCVNodeGraph* pNodeGraph)
+MyNodeGraph::MyNode* OpenCVNodeTypeManager::AddCreateNodeItemsToContextMenu(Vector2 pos, MyNodeGraph* pNodeGraph)
 {
     if( ImGui::BeginMenu( "Input" ) )
     {
@@ -41,16 +41,16 @@ OpenCVNodeGraph::OpenCVNode* OpenCVNodeTypeManager::AddCreateNodeItemsToContextM
     return nullptr;
 }
 
-OpenCVNodeGraph::OpenCVNode* OpenCVNodeTypeManager::CreateNode(const char* typeName, Vector2 pos, OpenCVNodeGraph* pNodeGraph)
+MyNodeGraph::MyNode* OpenCVNodeTypeManager::CreateNode(const char* typeName, Vector2 pos, MyNodeGraph* pNodeGraph)
 {
     OpenCVNodeGraph::NodeID newNodeID = pNodeGraph->GetNextNodeIDAndIncrement();
 
 #define TypeIs(name) strcmp( typeName, name ) == 0 )
 
-    if( TypeIs( "Input_File" )        return MyNew OpenCVNode_Input_File(        pNodeGraph, newNodeID, "File", pos );
-    if( TypeIs( "Convert_Grayscale" ) return MyNew OpenCVNode_Convert_Grayscale( pNodeGraph, newNodeID, "Grayscale", pos );
-    if( TypeIs( "Filter_Threshold" )  return MyNew OpenCVNode_Filter_Threshold(  pNodeGraph, newNodeID, "Threshold", pos );
-    if( TypeIs( "Filter_Bilateral" )  return MyNew OpenCVNode_Filter_Bilateral(  pNodeGraph, newNodeID, "Bilateral", pos );
+    if( TypeIs( "Input_File" )        return MyNew OpenCVNode_Input_File(        (OpenCVNodeGraph*)pNodeGraph, newNodeID, "File", pos );
+    if( TypeIs( "Convert_Grayscale" ) return MyNew OpenCVNode_Convert_Grayscale( (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Grayscale", pos );
+    if( TypeIs( "Filter_Threshold" )  return MyNew OpenCVNode_Filter_Threshold(  (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Threshold", pos );
+    if( TypeIs( "Filter_Bilateral" )  return MyNew OpenCVNode_Filter_Bilateral(  (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Bilateral", pos );
 
 #undef TypeIs
 

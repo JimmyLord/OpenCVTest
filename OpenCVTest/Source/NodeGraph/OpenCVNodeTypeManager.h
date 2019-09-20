@@ -20,8 +20,8 @@ protected:
 public:
     OpenCVNodeTypeManager();
 
-    virtual OpenCVNodeGraph::OpenCVNode* AddCreateNodeItemsToContextMenu(Vector2 pos, OpenCVNodeGraph* pNodeGraph) override;
-    virtual OpenCVNodeGraph::OpenCVNode* CreateNode(const char* typeName, Vector2 pos, OpenCVNodeGraph* pNodeGraph) override;
+    virtual MyNodeGraph::MyNode* AddCreateNodeItemsToContextMenu(Vector2 pos, MyNodeGraph* pNodeGraph) override;
+    virtual MyNodeGraph::MyNode* CreateNode(const char* typeName, Vector2 pos, MyNodeGraph* pNodeGraph) override;
 };
 
 #endif //__OpenCVNodeTypeManager_H__
