@@ -14,6 +14,9 @@ protected:
 public:
     OpenCVNode(OpenCVNodeGraph* pNodeGraph, int id, const char* name, const Vector2& pos, int inputsCount, int outputsCount);
     virtual ~OpenCVNode();
+
+    virtual bool Trigger(MyEvent* pEvent = nullptr) { return false; }
+    virtual bool Trigger(MyEvent* pEvent = nullptr, bool recursive = true) { return false; }
 };
 
 #endif //__OpenCVNode_H__

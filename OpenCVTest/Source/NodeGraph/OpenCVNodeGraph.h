@@ -29,6 +29,9 @@ public:
     virtual ~OpenCVNodeGraph();
 
     // Overrides.
+    virtual void Save() override; // from EditorDocument.
+    virtual void Load() override; // from EditorDocument.
+
     virtual void AddItemsAboveNodeGraphWindow() override;
     virtual void AddAdditionalItemsToNodeContextMenu(MyNodeGraph::MyNode* pNode) override;
 

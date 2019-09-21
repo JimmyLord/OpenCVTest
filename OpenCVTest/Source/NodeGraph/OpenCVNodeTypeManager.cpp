@@ -19,14 +19,16 @@ OpenCVNodeTypeManager::OpenCVNodeTypeManager()
 
 MyNodeGraph::MyNode* OpenCVNodeTypeManager::AddCreateNodeItemsToContextMenu(Vector2 pos, MyNodeGraph* pNodeGraph)
 {
-    if( ImGui::BeginMenu( "Input" ) )
+    if( ImGui::BeginMenu( "File" ) )
     {
-        if( ImGui::MenuItem( "File" ) )      { ImGui::EndMenu(); return CreateNode( "Input_File", pos, pNodeGraph ); }
+        if( ImGui::MenuItem( "Input" ) )      { ImGui::EndMenu(); return CreateNode( "File_Input", pos, pNodeGraph ); }
+        if( ImGui::MenuItem( "Output" ) )     { ImGui::EndMenu(); return CreateNode( "File_Output", pos, pNodeGraph ); }
         ImGui::EndMenu();
     }
 
     if( ImGui::BeginMenu( "Convert" ) )
     {
+        if( ImGui::MenuItem( "Crop" ) )      { ImGui::EndMenu(); return CreateNode( "Convert_Crop", pos, pNodeGraph ); }
         if( ImGui::MenuItem( "Grayscale" ) ) { ImGui::EndMenu(); return CreateNode( "Convert_Grayscale", pos, pNodeGraph ); }
         ImGui::EndMenu();
     }
@@ -47,8 +49,10 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::CreateNode(const char* typeName, Vec
 
 #define TypeIs(name) strcmp( typeName, name ) == 0 )
 
-    if( TypeIs( "Input_File" )        return MyNew OpenCVNode_Input_File(        (OpenCVNodeGraph*)pNodeGraph, newNodeID, "File", pos );
+    if( TypeIs( "File_Input" )        return MyNew OpenCVNode_File_Input(        (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Input", pos );
+    if( TypeIs( "File_Output" )       return MyNew OpenCVNode_File_Output(       (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Output", pos );
     if( TypeIs( "Convert_Grayscale" ) return MyNew OpenCVNode_Convert_Grayscale( (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Grayscale", pos );
+    if( TypeIs( "Convert_Crop" )      return MyNew OpenCVNode_Convert_Crop(      (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Crop", pos );
     if( TypeIs( "Filter_Threshold" )  return MyNew OpenCVNode_Filter_Threshold(  (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Threshold", pos );
     if( TypeIs( "Filter_Bilateral" )  return MyNew OpenCVNode_Filter_Bilateral(  (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Bilateral", pos );
 
