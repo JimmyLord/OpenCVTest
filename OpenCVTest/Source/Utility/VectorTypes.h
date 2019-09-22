@@ -20,6 +20,7 @@ public:
 
     ColorRGBf() { r = g = b = 0; }
     ColorRGBf(float nr, float ng, float nb) { r = nr; g = ng; b = nb; }
+    ColorRGBf(unsigned char nr, unsigned char ng, unsigned char nb) { r = nr/255.0f; g = ng/255.0f; b = nb/255.0f; }
     ColorRGBf(cv::Vec3b in) { r = in[2]/255.0f; g = in[1]/255.0f; b = in[0]/255.0f; }
     inline void FromVec3b(cv::Vec3b in) { r = in[2]/255.0f; g = in[1]/255.0f; b = in[0]/255.0f; }
     inline cv::Vec3b AsVec3b() { return cv::Vec3b( (unsigned char)(b*255), (unsigned char)(g*255), (unsigned char)(r*255) ); }

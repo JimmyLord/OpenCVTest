@@ -199,7 +199,7 @@ public:
 
         if( ImGui::Button( "Choose File..." ) )
         {
-            const char* filename = FileOpenDialog( "Data\\", "Images\0*.png;*.jpg\0All\0*.*\0" );
+            const char* filename = FileSaveDialog( "Data\\", "png files\0*.png" );
             if( filename[0] != '\0' )
             {
                 char path[MAX_PATH];
@@ -207,6 +207,13 @@ public:
                 const char* relativePath = GetRelativePath( path );
 
                 m_Filename = relativePath;
+                
+                int len = (int)strlen( relativePath );
+                if( len < 4 || strcmp( &relativePath[len-4], ".png" ) != 0 )
+                {
+                    m_Filename += ".png";
+                }
+
                 Trigger( nullptr, false );
             }
         }
@@ -371,13 +378,9 @@ public:
                 if( ImGui::DragInt( "Width",  &m_Size.x,    1.0f, 1, pImage->cols ) ) { valuesChanged = true; }
                 if( ImGui::DragInt( "Height", &m_Size.y,    1.0f, 1, pImage->rows ) ) { valuesChanged = true; }
 
-                if( m_TopLeft.x + m_Size.x > pImage->rows )
-                    m_TopLeft.x = pImage->rows - m_Size.x;
-                if( m_TopLeft.y + m_Size.y > pImage->cols )
-                    m_TopLeft.y = pImage->cols - m_Size.y;
-
                 if( valuesChanged )
                 {
+                    Validate( pImage );
                     QuickRun( true );
                 }
 
@@ -402,6 +405,8 @@ public:
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
         cv::Mat* pImage = pNode->GetValueMat();
 
+        Validate( pImage );
+
         // Crop out a subregion of the image.
         cv::cvtColor( *pImage, m_Image, cv::COLOR_BGR2GRAY );
         cv::Rect cropArea( m_TopLeft.x, m_TopLeft.y, m_Size.x, m_Size.y );
@@ -412,6 +417,19 @@ public:
         TriggerOutputNodes( pEvent, recursive );
 
         return false;
+    }
+
+    void Validate(cv::Mat* pImage)
+    {
+        if( m_Size.x > pImage->cols )
+            m_Size.x = pImage->cols;
+        if( m_Size.y > pImage->rows )
+            m_Size.y = pImage->rows;
+
+        if( m_TopLeft.x + m_Size.x > pImage->cols )
+            m_TopLeft.x = pImage->cols - m_Size.x;
+        if( m_TopLeft.y + m_Size.y > pImage->rows )
+            m_TopLeft.y = pImage->rows - m_Size.y;
     }
 
     virtual cJSON* ExportAsJSONObject() override

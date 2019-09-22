@@ -44,16 +44,44 @@ void OpenCVCore::OneTimeInit()
             m_pImGuiManager->Init( (float)GetWindowWidth(), (float)GetWindowHeight() );
         }
 
-        {
-            // This should be the editor pref load point for ImGui Editor builds.
-            m_pEditorPrefs = MyNew EditorPrefs;
-            m_pEditorPrefs->Init();
-            m_pEditorPrefs->LoadWindowSizePrefs();
-            m_pEditorPrefs->LoadPrefs();
-        }
+        // This should be the editor pref load point for ImGui Editor builds.
+        m_pEditorPrefs = MyNew EditorPrefs;
+        m_pEditorPrefs->Init();
+        m_pEditorPrefs->LoadWindowSizePrefs();
+        m_pEditorPrefs->LoadPrefs();
     }
 
     m_pNodeTypeManager = MyNew OpenCVNodeTypeManager();
+
+    // Restore the previously open documents.
+    {
+        cJSON* jEditorPrefs = m_pEditorPrefs->GetEditorPrefsJSONString();
+        cJSON* jOpenDocumentsArray = cJSON_GetObjectItem( jEditorPrefs, "State_OpenDocuments" );
+        if( jOpenDocumentsArray )
+        {
+            for( int i=0; i<cJSON_GetArraySize( jOpenDocumentsArray ); i++ )
+            {
+                cJSON* jDocument = cJSON_GetArrayItem( jOpenDocumentsArray, i );
+                char* relativePath = jDocument->valuestring;
+                int len = (int)strlen( relativePath );
+
+                EditorDocument* pNewDocument = nullptr;
+
+                if( strcmp( &relativePath[len-strlen(".opencvnodegraph")], ".opencvnodegraph" ) == 0 )
+                {
+                    pNewDocument = MyNew OpenCVNodeGraph( this, m_pNodeTypeManager );
+                }
+
+                if( pNewDocument != nullptr )
+                {
+                    pNewDocument->SetRelativePath( relativePath );
+                    pNewDocument->Load();
+                    m_pActiveDocument = pNewDocument;
+                    GetEditorState()->OpenDocument( pNewDocument );
+                }
+            }
+        }
+    }
 }
 
 //====================================================================================================
