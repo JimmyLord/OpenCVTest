@@ -19,4 +19,6 @@ void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture);
 TextureDefinition* CreateOrUpdateTextureDefinitionFromOpenCVMat(cv::Mat* pImage, TextureDefinition* pOldTexture = nullptr);
 void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, float size);
 
+void PrintFloatBadlyWithPrecision(std::string& str, float value, int maxDecimalPlaces);
+
 #endif //__Helpers_H__

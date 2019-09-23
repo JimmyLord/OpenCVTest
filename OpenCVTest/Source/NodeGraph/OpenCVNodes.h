@@ -34,6 +34,7 @@ public:
     //virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) { return 0; }
 
     virtual cv::Mat* GetValueMat() { return nullptr; }
+    virtual const char* GetSettingsString() { return nullptr; }
 
     void QuickRun(bool triggerJustThisNodeIfAutoRunIsOff)
     {
@@ -119,7 +120,7 @@ public:
             }
         }
 
-        ImGui::Text( "Filename: %s", m_Filename.c_str() );
+        ImGui::Text( "File: %s", m_Filename.c_str() );
         ImGui::Text( "Size: %dx%d", m_Image.cols, m_Image.rows );
         if( ImGui::Button( "Zoom to native" ) )
         {
@@ -207,21 +208,25 @@ public:
                 const char* relativePath = GetRelativePath( path );
 
                 m_Filename = relativePath;
-                
-                int len = (int)strlen( relativePath );
-                if( len < 4 || strcmp( &relativePath[len-4], ".png" ) != 0 )
-                {
-                    m_Filename += ".png";
-                }
 
                 Trigger( nullptr, false );
             }
         }
 
-        ImGui::Text( "Filename: %s", m_Filename.c_str() );
+        ImGui::Text( "File: %s", m_Filename.c_str() );
+
+        if( ImGui::Button( "Save" ) )
+        {
+            Save();
+        }
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    {
+        return true;
+    }
+
+    void Save()
     {
         //OpenCVNode::Trigger( pEvent );
 
@@ -229,10 +234,25 @@ public:
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
         cv::Mat* pImage = pNode->GetValueMat();
 
-        // Write the file to disk.
-        cv::imwrite( m_Filename.c_str(), *pImage );
+        std::string tempFilename = m_Filename;
 
-        return true;
+        // Append the setting string returned by the previous node.
+        const char* settingsString = pNode->GetSettingsString();
+        if( settingsString )
+        {
+            tempFilename += settingsString;
+        }
+
+        // Append a .png.
+        const char* relativePath = tempFilename.c_str();
+        int len = (int)strlen( relativePath );
+        if( len < 4 || strcmp( &relativePath[len-4], ".png" ) != 0 )
+        {
+            tempFilename += ".png";
+        }
+
+        // Write the file to disk.
+        cv::imwrite( tempFilename.c_str(), *pImage );
     }
 
     virtual cJSON* ExportAsJSONObject() override
@@ -576,6 +596,7 @@ class OpenCVNode_Filter_Bilateral : public OpenCVBaseNode
 protected:
     cv::Mat m_Image;
     TextureDefinition* m_pTexture;
+    std::string m_SettingsString;
     int m_WindowSize;
     float m_SigmaColor;
     float m_SigmaSpace;
@@ -657,6 +678,16 @@ public:
     }
 
     virtual cv::Mat* GetValueMat() override { return &m_Image; }
+    virtual const char* GetSettingsString() override
+    {
+        m_SettingsString = "-w" + std::to_string( m_WindowSize );
+        m_SettingsString += "-c";
+        PrintFloatBadlyWithPrecision( m_SettingsString, m_SigmaColor, 2 );
+        m_SettingsString += "-s";
+        PrintFloatBadlyWithPrecision( m_SettingsString, m_SigmaSpace, 2 );
+
+        return m_SettingsString.c_str();
+    }
 };
 
 #endif //__OpenCVNodes_H__

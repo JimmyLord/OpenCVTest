@@ -160,3 +160,17 @@ void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, fl
             ImVec2( 0, 0 ), ImVec2( (float)pImage->cols / pow2cols, (float)pImage->rows / pow2rows ) );
     }
 }
+
+void PrintFloatBadlyWithPrecision(std::string& str, float value, int maxDecimalPlaces)
+{
+    char tempFormat[8];
+    sprintf_s( tempFormat, 8, "%%0.%df", maxDecimalPlaces );
+
+    char tempResult[32];
+    sprintf_s( tempResult, 32, tempFormat, value );
+
+    str += tempResult;
+
+    str.erase( str.find_last_not_of('0') + 1, std::string::npos );
+    str.erase( str.find_last_not_of('.') + 1, std::string::npos );
+}

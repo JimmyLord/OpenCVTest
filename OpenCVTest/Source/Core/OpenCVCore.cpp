@@ -4,9 +4,10 @@
 #include "OpenCVPCH.h"
 
 #include "OpenCVCore.h"
-#include "Tests/Tests.h"
 #include "NodeGraph/OpenCVNodeGraph.h"
 #include "NodeGraph/OpenCVNodeTypeManager.h"
+#include "Settings/Settings.h"
+#include "Tests/Tests.h"
 #include "Libraries/Engine/MyEngine/SourceEditor/PlatformSpecific/FileOpenDialog.h"
 
 OpenCVCore::OpenCVCore()
@@ -51,7 +52,7 @@ void OpenCVCore::OneTimeInit()
         m_pEditorPrefs->LoadPrefs();
     }
 
-    m_pNodeTypeManager = MyNew OpenCVNodeTypeManager();
+    m_pNodeTypeManager = CreateNodeTypeManager();
 
     // Restore the previously open documents.
     {
