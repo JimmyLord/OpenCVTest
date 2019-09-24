@@ -79,6 +79,9 @@ void ShiftTopLeftToCenter(cv::Mat& image)
 
 int NextPowerOfTwo(int value)
 {
+    if( value < 0 )
+        return 0;
+
     int power = 2;
     value--;
     while( value >>= 1 )

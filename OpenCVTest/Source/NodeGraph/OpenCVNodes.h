@@ -25,10 +25,14 @@ class OpenCVNode_Filter_Bilateral;
 
 class OpenCVBaseNode : public OpenCVNodeGraph::OpenCVNode
 {
+protected:
+    double m_LastProcessTime;
+
 public:
     OpenCVBaseNode(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int inputsCount, int outputsCount)
         : OpenCVNodeGraph::OpenCVNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
     {
+        m_LastProcessTime = 0.0;
     }
 
     //virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) { return 0; }
@@ -638,6 +642,7 @@ public:
         if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun( false ); }
         if( ImGui::DragFloat( "Sigma Color", &m_SigmaColor, 1.0f, 0.0f, 255.0f ) ) { QuickRun( false ); }
         if( ImGui::DragFloat( "Sigma Space", &m_SigmaSpace, 1.0f, 0.0f, 255.0f ) ) { QuickRun( false ); }
+        ImGui::Text( "Runtime: %f", m_LastProcessTime );
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
     }
@@ -651,7 +656,11 @@ public:
         cv::Mat* pImage = pNode->GetValueMat();
 
         // Apply the Bilateral filter.
+        double timeBefore = MyTime_GetSystemTime();
         cv::bilateralFilter( *pImage, m_Image, m_WindowSize, m_SigmaColor, m_SigmaSpace );
+        double timeAfter = MyTime_GetSystemTime();
+        m_LastProcessTime = timeAfter - timeBefore;
+
         m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
         // Trigger the output nodes.
