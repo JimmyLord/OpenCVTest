@@ -15,14 +15,14 @@ function CopyFile(source, destination)
     end
 end
 
-monoInstallationPath = "C:/Program Files/Mono/" -- TODO: Don't hardcode the path to mono installation.
+monoInstallationPath = "C:/Program Files/Mono" -- TODO: Don't hardcode the path to mono installation.
 
 CopyFile( "Libraries/OpenCV/x64/vc15/bin/opencv_world411.dll", "OpenCVTest/opencv_world411.dll" )
 CopyFile( "Libraries/OpenCV/x64/vc15/bin/opencv_world411d.dll", "OpenCVTest/opencv_world411d.dll" )
 CopyFile( "Libraries/Framework/Libraries/pthreads-w32/dll/x64/pthreadVC2.dll", "OpenCVTest/pthreadVC2-x64.dll" )
-CopyFile( monoInstallationPath .. "bin/mono-2.0-sgen.dll", "OpenCVTest/mono-2.0-sgen.dll" )
-os.mkdir( "OpenCVTest/mono/lib/mono/4.5/" )
-CopyFile( monoInstallationPath .. "lib/mono/4.5/mscorlib.dll", "OpenCVTest/mono/lib/mono/4.5/mscorlib.dll" )
+CopyFile( monoInstallationPath .. "/bin/mono-2.0-sgen.dll", "OpenCVTest/mono-2.0-sgen.dll" )
+os.mkdir( "OpenCVTest/mono/lib/mono/4.5" )
+CopyFile( monoInstallationPath .. "/lib/mono/4.5/mscorlib.dll", "OpenCVTest/mono/lib/mono/4.5/mscorlib.dll" )
 
 -- Helper to include other premake.lua files.
 local rootFolder = os.getcwd()
@@ -84,7 +84,7 @@ project "OpenCVTest"
         "$(SolutionDir)../Libraries/Framework/Libraries/b2Settings",
         "$(SolutionDir)../Libraries/Framework/Libraries/Box2D",
         "Libraries/OpenCV/include",
-        monoInstallationPath .. "include/mono-2.0",
+        monoInstallationPath .. "/include/mono-2.0",
     }
 
     files {
@@ -128,7 +128,7 @@ project "OpenCVTest"
     filter "system:windows"
         libdirs {
             "Libraries/Framework/Libraries/pthreads-w32/lib/x64",
-            monoInstallationPath .. "lib/",
+            monoInstallationPath .. "/lib",
         }
 
         links {
