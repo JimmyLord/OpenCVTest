@@ -89,4 +89,9 @@ void OpenCVNodeGraph::AddAdditionalItemsToNodeContextMenu(MyNodeGraph::MyNode* p
     {
         ((OpenCVNodeGraph::OpenCVNode*)pNode)->Trigger( nullptr, true );
     }
+
+    if( ImGui::MenuItem( "Run this node only", nullptr, false ) )
+    {
+        ((OpenCVNodeGraph::OpenCVNode*)pNode)->Trigger( nullptr, false );
+    }
 }

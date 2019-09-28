@@ -236,7 +236,11 @@ public:
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
+        if( pNode == nullptr )
+            return;
         cv::Mat* pImage = pNode->GetValueMat();
+        if( pImage->empty() == true )
+            return;
 
         std::string tempFilename = m_Filename;
 
@@ -327,7 +331,11 @@ public:
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
+        if( pNode == nullptr )
+            return false;
         cv::Mat* pImage = pNode->GetValueMat();
+        if( pImage->empty() == true )
+            return false;
 
         // Convert to Grayscale.
         cv::cvtColor( *pImage, m_Image, cv::COLOR_BGR2GRAY );
@@ -392,6 +400,8 @@ public:
         if( pNode )
         {
             cv::Mat* pImage = pNode->GetValueMat();
+            if( pImage->empty() == true )
+                return;
 
             if( pImage->cols > 0 )
             {
@@ -427,7 +437,11 @@ public:
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
+        if( pNode == nullptr )
+            return false;
         cv::Mat* pImage = pNode->GetValueMat();
+        if( pImage->empty() == true )
+            return false;
 
         Validate( pImage );
 
@@ -561,7 +575,11 @@ public:
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
+        if( pNode == nullptr )
+            return false;
         cv::Mat* pImage = pNode->GetValueMat();
+        if( pImage->empty() == true )
+            return false;
 
         // Apply the threshold filter.
         cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, m_ThresholdType );
@@ -653,7 +671,11 @@ public:
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
+        if( pNode == nullptr )
+            return false;
         cv::Mat* pImage = pNode->GetValueMat();
+        if( pImage->empty() == true )
+            return false;
 
         // Apply the Bilateral filter.
         double timeBefore = MyTime_GetSystemTime();
