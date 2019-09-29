@@ -4,7 +4,7 @@
 #include "OpenCVPCH.h"
 
 #include "OpenCVNodeGraph.h"
-#include "OpenCVNode.h"
+#include "OpenCVNodes.h"
 #include "OpenCVNodeTypeManager.h"
 
 OpenCVNodeGraph::OpenCVNodeGraph(EngineCore* pEngineCore, OpenCVNodeTypeManager* pNodeTypeManager)
@@ -87,11 +87,11 @@ void OpenCVNodeGraph::AddAdditionalItemsToNodeContextMenu(MyNodeGraph::MyNode* p
     // Draw context menu.
     if( ImGui::MenuItem( "Run", nullptr, false ) )
     {
-        ((OpenCVNodeGraph::OpenCVNode*)pNode)->Trigger( nullptr, true );
+        ((OpenCVBaseNode*)pNode)->Trigger( nullptr, true );
     }
 
     if( ImGui::MenuItem( "Run this node only", nullptr, false ) )
     {
-        ((OpenCVNodeGraph::OpenCVNode*)pNode)->Trigger( nullptr, false );
+        ((OpenCVBaseNode*)pNode)->Trigger( nullptr, false );
     }
 }

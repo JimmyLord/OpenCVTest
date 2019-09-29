@@ -4,7 +4,6 @@
 #ifndef __OpenCVNodeTypeManager_H__
 #define __OpenCVNodeTypeManager_H__
 
-#include "OpenCVNode.h"
 #include "OpenCVNodeGraph.h"
 
 class ComponentBase;

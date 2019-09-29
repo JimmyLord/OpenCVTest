@@ -4,7 +4,6 @@
 #ifndef __OpenCVNodes_H__
 #define __OpenCVNodes_H__
 
-#include "OpenCVNode.h"
 #include "Utility/Helpers.h"
 #include "Utility/VectorTypes.h"
 #include "Libraries/Engine/MyEngine/SourceEditor/PlatformSpecific/FileOpenDialog.h"
@@ -23,15 +22,17 @@ class OpenCVNode_Filter_Bilateral;
 // OpenCVNode
 //====================================================================================================
 
-class OpenCVBaseNode : public OpenCVNodeGraph::OpenCVNode
+class OpenCVBaseNode : public MyNodeGraph::MyNode
 {
 protected:
+    OpenCVNodeGraph* m_pNodeGraph; // Hide the m_pNodeGraph in the MyNode class with a pointer to an OpenCVNodeGraph.
     double m_LastProcessTime;
 
 public:
     OpenCVBaseNode(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int inputsCount, int outputsCount)
-        : OpenCVNodeGraph::OpenCVNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
+        : MyNodeGraph::MyNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
     {
+        m_pNodeGraph = pNodeGraph;
         m_LastProcessTime = 0.0;
     }
 
@@ -54,12 +55,15 @@ public:
         }
     }
 
+    virtual bool Trigger(MyEvent* pEvent = nullptr) { return false; }
+    virtual bool Trigger(MyEvent* pEvent = nullptr, bool recursive = true) { return false; }
+
     void TriggerOutputNodes(MyEvent* pEvent, bool recursive)
     {
         if( recursive )
         {
             int count = 0;
-            while( OpenCVNode* pNode = (OpenCVNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 0, count++ ) )
+            while( OpenCVBaseNode* pNode = (OpenCVBaseNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 0, count++ ) )
             {
                 pNode->Trigger( nullptr, true );
             }
@@ -101,14 +105,14 @@ public:
     virtual void DrawTitle() override
     {
         if( m_Expanded )
-            OpenCVNode::DrawTitle();
+            OpenCVBaseNode::DrawTitle();
         else
             ImGui::Text( "%s: %s", m_Name, m_Filename.c_str() );
     }
 
     virtual void DrawContents() override
     {
-        OpenCVNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         if( ImGui::Button( "Choose File..." ) )
         {
@@ -136,7 +140,7 @@ public:
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
     {
-        //OpenCVNode::Trigger( pEvent );
+        //OpenCVBaseNode::Trigger( pEvent );
 
         // Load the file from disk.
         m_Image = cv::imread( m_Filename.c_str() );
@@ -193,14 +197,14 @@ public:
     virtual void DrawTitle() override
     {
         if( m_Expanded )
-            OpenCVNode::DrawTitle();
+            OpenCVBaseNode::DrawTitle();
         else
             ImGui::Text( "%s: %s", m_Name, m_Filename.c_str() );
     }
 
     virtual void DrawContents() override
     {
-        OpenCVNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         if( ImGui::Button( "Choose File..." ) )
         {
@@ -232,7 +236,7 @@ public:
 
     void Save()
     {
-        //OpenCVNode::Trigger( pEvent );
+        //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
@@ -310,7 +314,7 @@ public:
     {
         if( m_Expanded )
         {
-            OpenCVNode::DrawTitle();
+            OpenCVBaseNode::DrawTitle();
         }
         else
         {
@@ -320,14 +324,14 @@ public:
 
     virtual void DrawContents() override
     {
-        OpenCVNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
     {
-        //OpenCVNode::Trigger( pEvent );
+        //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
@@ -383,7 +387,7 @@ public:
     {
         if( m_Expanded )
         {
-            OpenCVNode::DrawTitle();
+            OpenCVBaseNode::DrawTitle();
         }
         else
         {
@@ -393,7 +397,7 @@ public:
 
     virtual void DrawContents() override
     {
-        OpenCVNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
@@ -433,7 +437,7 @@ public:
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
     {
-        //OpenCVNode::Trigger( pEvent );
+        //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
@@ -532,7 +536,7 @@ public:
     {
         if( m_Expanded )
         {
-            OpenCVNode::DrawTitle();
+            OpenCVBaseNode::DrawTitle();
         }
         else
         {
@@ -542,7 +546,7 @@ public:
 
     virtual void DrawContents() override
     {
-        OpenCVNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         if( ImGui::DragFloat( "Value", &m_ThresholdValue, 1.0f, 0.0f, 255.0f ) )             { QuickRun( false ); }
         //if( ImGui::ListBox( "Type", &m_ThresholdType, ThresholdTypeNames, ThresholdTypeMax ) ) { QuickRun(); }
@@ -571,7 +575,7 @@ public:
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
     {
-        //OpenCVNode::Trigger( pEvent );
+        //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
@@ -645,7 +649,7 @@ public:
     {
         if( m_Expanded )
         {
-            OpenCVNode::DrawTitle();
+            OpenCVBaseNode::DrawTitle();
         }
         else
         {
@@ -655,7 +659,7 @@ public:
 
     virtual void DrawContents() override
     {
-        OpenCVNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun( false ); }
         if( ImGui::DragFloat( "Sigma Color", &m_SigmaColor, 1.0f, 0.0f, 255.0f ) ) { QuickRun( false ); }
@@ -667,7 +671,7 @@ public:
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
     {
-        //OpenCVNode::Trigger( pEvent );
+        //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );

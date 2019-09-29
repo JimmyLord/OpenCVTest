@@ -6,7 +6,6 @@
 #include "OpenCVNodeTypeManager.h"
 
 #include "OpenCVNodeGraph.h"
-#include "OpenCVNode.h"
 #include "OpenCVNodes.h"
 
 #undef AddVar
