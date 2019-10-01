@@ -7,6 +7,7 @@
 
 #include "OpenCVNodeGraph.h"
 #include "OpenCVNodes.h"
+#include "OpenCVNodes_Face.h"
 
 #undef AddVar
 #define AddVar ComponentBase::AddVariable_Base
@@ -20,8 +21,8 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::AddCreateNodeItemsToContextMenu(Vect
 {
     if( ImGui::BeginMenu( "File" ) )
     {
-        if( ImGui::MenuItem( "Input" ) )      { ImGui::EndMenu(); return CreateNode( "File_Input", pos, pNodeGraph ); }
-        if( ImGui::MenuItem( "Output" ) )     { ImGui::EndMenu(); return CreateNode( "File_Output", pos, pNodeGraph ); }
+        if( ImGui::MenuItem( "Input" ) )     { ImGui::EndMenu(); return CreateNode( "File_Input", pos, pNodeGraph ); }
+        if( ImGui::MenuItem( "Output" ) )    { ImGui::EndMenu(); return CreateNode( "File_Output", pos, pNodeGraph ); }
         ImGui::EndMenu();
     }
 
@@ -36,6 +37,12 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::AddCreateNodeItemsToContextMenu(Vect
     {
         if( ImGui::MenuItem( "Threshold" ) ) { ImGui::EndMenu(); return CreateNode( "Filter_Threshold", pos, pNodeGraph ); }
         if( ImGui::MenuItem( "Bilateral" ) ) { ImGui::EndMenu(); return CreateNode( "Filter_Bilateral", pos, pNodeGraph ); }
+        ImGui::EndMenu();
+    }
+
+    if( ImGui::BeginMenu( "Face" ) )
+    {
+        if( ImGui::MenuItem( "Detect" ) )    { ImGui::EndMenu(); return CreateNode( "Face_Detect", pos, pNodeGraph ); }
         ImGui::EndMenu();
     }
 
@@ -54,6 +61,7 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::CreateNode(const char* typeName, Vec
     if( TypeIs( "Convert_Crop" )      return MyNew OpenCVNode_Convert_Crop(      (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Crop", pos );
     if( TypeIs( "Filter_Threshold" )  return MyNew OpenCVNode_Filter_Threshold(  (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Threshold", pos );
     if( TypeIs( "Filter_Bilateral" )  return MyNew OpenCVNode_Filter_Bilateral(  (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Bilateral", pos );
+    if( TypeIs( "Face_Detect" )       return MyNew OpenCVNode_Face_Detect(       (OpenCVNodeGraph*)pNodeGraph, newNodeID, "FaceDetect", pos );
 
 #undef TypeIs
 

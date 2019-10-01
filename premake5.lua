@@ -46,6 +46,9 @@ workspace "OpenCVTest"
         platforms       { "x64" }
         characterset    "MBCS"
 
+----------------------------------------------- All Projects ------------------------------------------------
+PremakeConfig_UseMemoryTracker = false
+
 ------------------------------------------------ MyFramework ------------------------------------------------
 MyFrameworkPremakeConfig_ForceIncludeEditorFiles = true
 BuildSingleProjectPremake( "Libraries/Framework/", "premake5inc.lua" )
@@ -124,6 +127,9 @@ project "OpenCVTest"
         defines         "_DEBUG"
         symbols         "on"
         links { "Libraries/OpenCV/x64/vc15/lib/opencv_world411d.lib" }
+if PremakeConfig_UseMemoryTracker == true then
+        defines         "MYFW_USE_MEMORY_TRACKER"
+end
 
     filter "system:windows"
         libdirs {
