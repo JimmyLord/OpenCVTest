@@ -149,7 +149,7 @@ public:
             m_pNodeGraph->SetImageWidth( (float)m_Image.cols );
         }
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -340,7 +340,7 @@ public:
     {
         OpenCVBaseNode::DrawContents();
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -436,7 +436,7 @@ public:
                     QuickRun( true );
                 }
 
-                DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
+                DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
             }
             else
             {
@@ -584,7 +584,7 @@ public:
             ImGui::EndCombo();
         }
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -680,7 +680,7 @@ public:
         if( ImGui::DragFloat( "Sigma Space", &m_SigmaSpace, 1.0f, 0.0f, 255.0f ) ) { QuickRun( false ); }
         ImGui::Text( "Runtime: %f", m_LastProcessTime );
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override

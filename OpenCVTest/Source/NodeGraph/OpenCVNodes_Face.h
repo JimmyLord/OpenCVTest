@@ -63,7 +63,7 @@ public:
     {
         OpenCVBaseNode::DrawContents();
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override

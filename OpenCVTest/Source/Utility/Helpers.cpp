@@ -152,15 +152,51 @@ TextureDefinition* CreateOrUpdateTextureDefinitionFromOpenCVMat(cv::Mat* pImage,
     return pOldTexture;
 }
 
-void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, float size)
+void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, float size, float zoom)
 {
     if( pTexture != nullptr )
     {
         float aspect = (float)pImage->rows / pImage->cols;
         int pow2cols = NextPowerOfTwo( pImage->cols );
         int pow2rows = NextPowerOfTwo( pImage->rows );
+
+        ImVec2 pos = ImGui::GetCursorScreenPos();
+
         ImGui::Image( (void*)pTexture, ImVec2( size, size*aspect ),
             ImVec2( 0, 0 ), ImVec2( (float)pImage->cols / pow2cols, (float)pImage->rows / pow2rows ) );
+
+        if( ImGui::IsItemHovered() )
+        {
+            ImGuiIO& io = ImGui::GetIO();
+
+            ImGui::BeginTooltip();
+            float region_sz = 8.0f * zoom;
+
+            float my_tex_w = (float)pImage->cols;
+            float my_tex_h = (float)pImage->rows;
+
+            float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
+            if( region_x < 0.0f ) region_x = 0.0f;
+            else if( region_x > my_tex_w - region_sz ) region_x = my_tex_w - region_sz;
+            
+            float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
+            if( region_y < 0.0f ) region_y = 0.0f;
+            else if( region_y > my_tex_h - region_sz ) region_y = my_tex_h - region_sz;
+            
+            ImGui::Text( "Min: (%.2f, %.2f)", region_x, region_y );
+            ImGui::Text( "Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz );
+
+            ImVec2 uv0 = ImVec2( (region_x) / pow2cols, (region_y) / pow2rows );
+            ImVec2 uv1 = ImVec2( (region_x + region_sz) / pow2cols, (region_y + region_sz) / pow2rows );
+
+            ImVec2 imageScale( size / pow2cols, size*aspect / pow2rows );
+            uv0.x /= imageScale.x; uv0.y /= imageScale.y;
+            uv1.x /= imageScale.x; uv1.y /= imageScale.y;
+
+            ImGui::Image( (void*)pTexture, ImVec2( 128, 128 * aspect ), uv0, uv1, ImColor(255,255,255,255), ImColor(255,255,255,128));
+            
+            ImGui::EndTooltip();
+        }
     }
 }
 
