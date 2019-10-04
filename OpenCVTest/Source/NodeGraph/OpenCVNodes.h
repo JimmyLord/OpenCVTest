@@ -107,7 +107,15 @@ public:
         if( m_Expanded )
             OpenCVBaseNode::DrawTitle();
         else
-            ImGui::Text( "%s: %s", m_Name, m_Filename.c_str() );
+        {
+            ImGui::Text( "%s: %.18s", m_Name, m_Filename.c_str() );
+            if( ImGui::IsItemHovered() && m_Filename.length() > 18 )
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text( "%s", m_Filename.c_str() );
+                ImGui::EndTooltip();
+            }
+        }
     }
 
     virtual void DrawContents() override
@@ -128,7 +136,13 @@ public:
             }
         }
 
-        ImGui::Text( "File: %s", m_Filename.c_str() );
+        ImGui::Text( "File: %.22s", m_Filename.c_str() );
+        if( ImGui::IsItemHovered() && m_Filename.length() > 22 )
+        {
+            ImGui::BeginTooltip();
+            ImGui::Text( "%s", m_Filename.c_str() );
+            ImGui::EndTooltip();
+        }
         ImGui::Text( "Size: %dx%d", m_Image.cols, m_Image.rows );
         if( ImGui::Button( "Zoom to native" ) )
         {
