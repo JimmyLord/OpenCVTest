@@ -4,6 +4,7 @@
 #ifndef __OpenCVNodes_H__
 #define __OpenCVNodes_H__
 
+#include "OpenCVNodeGraph.h"
 #include "Utility/Helpers.h"
 #include "Utility/VectorTypes.h"
 #include "Libraries/Engine/MyEngine/SourceEditor/PlatformSpecific/FileOpenDialog.h"
@@ -149,7 +150,7 @@ public:
             m_pNodeGraph->SetImageWidth( (float)m_Image.cols );
         }
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -340,7 +341,7 @@ public:
     {
         OpenCVBaseNode::DrawContents();
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -436,7 +437,7 @@ public:
                     QuickRun( true );
                 }
 
-                DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
+                DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
             }
             else
             {
@@ -584,7 +585,7 @@ public:
             ImGui::EndCombo();
         }
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -680,7 +681,7 @@ public:
         if( ImGui::DragFloat( "Sigma Space", &m_SigmaSpace, 1.0f, 0.0f, 255.0f ) ) { QuickRun( false ); }
         ImGui::Text( "Runtime: %f", m_LastProcessTime );
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverZoomLevel() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override

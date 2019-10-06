@@ -17,7 +17,7 @@ public:
 protected:
     float m_ImageWidth;
     bool m_AutoRun;
-    float m_HoverZoomLevel;
+    float m_HoverPixelsToShow;
 
 protected:
     // File IO.
@@ -40,7 +40,7 @@ public:
     float GetImageWidth() { return m_ImageWidth; }
     void SetImageWidth(float height) { m_ImageWidth = height; }
     bool GetAutoRun() { return m_AutoRun; }
-    float GetHoverZoomLevel() { return m_HoverZoomLevel; }
+    float GetHoverPixelsToShow() { return m_HoverPixelsToShow; }
 };
 
 //====================================================================================================

@@ -12,7 +12,7 @@ OpenCVNodeGraph::OpenCVNodeGraph(EngineCore* pEngineCore, OpenCVNodeTypeManager*
 {
     m_ImageWidth = 200;
     m_AutoRun = true;
-    m_HoverZoomLevel = 4.0;
+    m_HoverPixelsToShow = 32.0f;
 }
 
 OpenCVNodeGraph::~OpenCVNodeGraph()
@@ -84,7 +84,7 @@ void OpenCVNodeGraph::AddItemsAboveNodeGraphWindow()
     
     ImGui::SameLine();
     ImGui::PushItemWidth( 100 );
-    ImGui::DragFloat( "Hover Zoom", &m_HoverZoomLevel, 0.1f, 0.1f, 1000.0f );
+    ImGui::DragFloat( "Hover Pixels", &m_HoverPixelsToShow, 1.0f, 1.0f, 64.0f );
     
     ImGui::SameLine( ImGui::GetWindowWidth() - 300 );
     ImGui::Checkbox( "Show grid", &m_GridVisible );

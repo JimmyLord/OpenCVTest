@@ -152,7 +152,7 @@ TextureDefinition* CreateOrUpdateTextureDefinitionFromOpenCVMat(cv::Mat* pImage,
     return pOldTexture;
 }
 
-void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, float size, float zoom)
+void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, float size, float pixelsToShow)
 {
     if( pTexture != nullptr )
     {
@@ -170,18 +170,20 @@ void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, fl
             ImGuiIO& io = ImGui::GetIO();
 
             ImGui::BeginTooltip();
-            float regionSize = 32.0f;
+            
+            Vector2 textureSize = Vector2( (float)pow2cols, (float)pow2rows );
+            Vector2 imageSizeNative = Vector2( (float)pImage->cols, (float)pImage->rows );
+            Vector2 regionSizeNative = Vector2( pixelsToShow, pixelsToShow*aspect );
+            Vector2 viewportSizeNative = Vector2( size, size*aspect );
 
-            ImVec2 imageScale( size / pow2cols, size / pow2rows * aspect );
+            Vector2 regionCenterViewport( io.MousePos.x - pos.x, io.MousePos.y - pos.y );
+            Vector2 regionCenterNative = regionCenterViewport / viewportSizeNative * imageSizeNative;
+            Vector2 regionBLNative = regionCenterNative - regionSizeNative/2;
+            MyClamp( regionBLNative.x, 0.0f, imageSizeNative.x - regionSizeNative.x );
+            MyClamp( regionBLNative.y, 0.0f, imageSizeNative.y - regionSizeNative.y );
 
-            float regionX = io.MousePos.x - pos.x - regionSize/2;
-            MyClamp( regionX, 0.0f, (float)pImage->cols - regionSize );
-
-            float regionY = io.MousePos.y - pos.y - regionSize/2;
-            MyClamp( regionY, 0.0f, (float)pImage->rows - regionSize );
-
-            ImVec2 uv0 = ImVec2( regionX/size * uvMax.x, regionY/(size*aspect) * uvMax.y );
-            ImVec2 uv1 = ImVec2( (regionX + regionSize)/size * uvMax.x, (regionY + regionSize) / (size*aspect) * uvMax.y );
+            Vector2 uv0 = regionBLNative / textureSize;
+            Vector2 uv1 = uv0 + regionSizeNative / textureSize;
 
             ImGui::Image( (void*)pTexture, ImVec2( 128, 128 * aspect ), uv0, uv1, ImColor(255,255,255,255), ImColor(255,255,255,128));
             
