@@ -353,7 +353,7 @@ void OpenCVCore::OnDrawFrame(unsigned int canvasid)
 
         if( pDocument )
         {
-            ImGui::SetNextWindowSize( ImVec2(1000, 550), ImGuiSetCond_FirstUseEver );
+            ImGui::SetNextWindowSize( ImVec2(1000, 550), ImGuiCond_FirstUseEver );
             bool documentStillOpen = true;
             pDocument->CreateWindowAndUpdate( &documentStillOpen );
             if( pDocument->IsWindowFocused() )
