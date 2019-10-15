@@ -519,16 +519,18 @@ protected:
     float m_ThresholdValue;
     int m_ThresholdType;
 
-    const char* ThresholdTypeNames[5] = 
+    const char* ThresholdTypeNames[7] = 
     {
         "Binary",
         "Binary Inverse",
         "Truncate",
         "To Zero",
         "To Zero Inverse",
+        "To One",
+        "To One Inverse",
     };
 
-    const int ThresholdTypeMax = 5;
+    const int ThresholdTypeMax = 7;
 
 public:
     OpenCVNode_Filter_Threshold(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
@@ -601,7 +603,23 @@ public:
             return false;
 
         // Apply the threshold filter.
-        cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, m_ThresholdType );
+        if( m_ThresholdType < 5 )
+        {
+            cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, m_ThresholdType );
+        }
+        else
+        {
+            if( m_ThresholdType == 5 )
+            {
+                cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, cv::THRESH_TOZERO );
+                m_Image.setTo( 255, m_Image == 0 );
+            }
+            if( m_ThresholdType == 6 )
+            {
+                cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, cv::THRESH_TOZERO_INV );
+                m_Image.setTo( 255, m_Image == 0 );
+            }
+        }
         m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
         // Trigger the output nodes.
