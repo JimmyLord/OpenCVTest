@@ -16,6 +16,8 @@ OpenCVCore::OpenCVCore()
     m_pLastActiveDocument = nullptr;
 
     m_pNodeTypeManager = nullptr;
+
+    m_CentralNodeDockID = 0;
 }
 
 OpenCVCore::~OpenCVCore()
@@ -303,16 +305,17 @@ float OpenCVCore::Tick(float deltaTime)
     m_pImGuiManager->StartTick( deltaTime );
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos( viewport->Pos );
-    ImGui::SetNextWindowSize( viewport->Size );
-    ImGui::SetNextWindowViewport( viewport->ID );
+    ImGuiViewport* pViewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos( pViewport->Pos );
+    ImGui::SetNextWindowSize( pViewport->Size );
+    ImGui::SetNextWindowViewport( pViewport->ID );
     ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
     flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f) );
     ImGui::Begin( "Main Dock", nullptr, flags );
-    ImGui::PopStyleVar();
+    ImGui::PopStyleVar(); // ImGuiStyleVar_WindowPadding
+    ImGui::PopStyleVar(); // ImGuiStyleVar_WindowRounding
 
     if( ImGui::BeginMainMenuBar() )
     {
@@ -346,10 +349,13 @@ float OpenCVCore::Tick(float deltaTime)
         ImGui::EndMainMenuBar();
     }
 
-    ImGuiID dockspace_id = ImGui::GetID( "MyDockspace" );
-    ImGui::DockSpace( dockspace_id );
+    ImGuiID dockspaceID = ImGui::GetID( "MyDockspace" );
+    ImGui::DockSpace( dockspaceID );
+
+    ImGuiDockNode* pCentralNode = ImGui::DockBuilderGetCentralNode( dockspaceID );
+    m_CentralNodeDockID = pCentralNode->ID;
+
     ImGui::End();
-    ImGui::PopStyleVar();
 
     return 0;
 }
@@ -370,8 +376,10 @@ void OpenCVCore::OnDrawFrame(unsigned int canvasid)
 
         if( pDocument )
         {
-            ImGui::SetNextWindowPos( ImVec2(10, 40), ImGuiCond_FirstUseEver );
-            ImGui::SetNextWindowSize( ImVec2((float)GetWindowWidth() - 20, (float)GetWindowHeight() - 60), ImGuiCond_FirstUseEver );
+            //ImGui::SetNextWindowPos( ImVec2(10, 40), ImGuiCond_FirstUseEver );
+            //ImGui::SetNextWindowSize( ImVec2((float)GetWindowWidth() - 20, (float)GetWindowHeight() - 60), ImGuiCond_FirstUseEver );
+            //ImGui::SetNextWindowSize( ImVec2(400, 300), ImGuiCond_FirstUseEver );
+            ImGui::SetNextWindowDockID( m_CentralNodeDockID, ImGuiCond_FirstUseEver );
             bool documentStillOpen = true;
             pDocument->CreateWindowAndUpdate( &documentStillOpen );
             if( pDocument->IsWindowFocused() )

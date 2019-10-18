@@ -16,6 +16,8 @@ public:
 
     OpenCVNodeTypeManager* m_pNodeTypeManager;
 
+    ImGuiID m_CentralNodeDockID;
+
 public:
     OpenCVCore();
     virtual ~OpenCVCore();
