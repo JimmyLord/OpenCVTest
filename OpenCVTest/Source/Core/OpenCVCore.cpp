@@ -302,6 +302,18 @@ float OpenCVCore::Tick(float deltaTime)
     m_pImGuiManager->StartFrame();
     m_pImGuiManager->StartTick( deltaTime );
 
+    ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos( viewport->Pos );
+    ImGui::SetNextWindowSize( viewport->Size );
+    ImGui::SetNextWindowViewport( viewport->ID );
+    ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
+    flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f) );
+    ImGui::Begin( "Main Dock", nullptr, flags );
+    ImGui::PopStyleVar();
+
     if( ImGui::BeginMainMenuBar() )
     {
         if( ImGui::BeginMenu( "Tests" ) )
@@ -333,6 +345,11 @@ float OpenCVCore::Tick(float deltaTime)
 
         ImGui::EndMainMenuBar();
     }
+
+    ImGuiID dockspace_id = ImGui::GetID( "MyDockspace" );
+    ImGui::DockSpace( dockspace_id );
+    ImGui::End();
+    ImGui::PopStyleVar();
 
     return 0;
 }
