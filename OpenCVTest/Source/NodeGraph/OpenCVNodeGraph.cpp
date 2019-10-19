@@ -19,6 +19,25 @@ OpenCVNodeGraph::~OpenCVNodeGraph()
 {
 }
 
+bool OpenCVNodeGraph::HandleInput(int keyAction, int keyCode, int mouseAction, int id, float x, float y, float pressure)
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    if( keyAction == GCBA_Down )
+    {
+        bool N  = !io.KeyCtrl && !io.KeyAlt && !io.KeyShift && !io.KeySuper; // No modifiers held
+        bool C  =  io.KeyCtrl && !io.KeyAlt && !io.KeyShift && !io.KeySuper; // Ctrl
+        bool A  = !io.KeyCtrl &&  io.KeyAlt && !io.KeyShift && !io.KeySuper; // Alt
+        bool S  = !io.KeyCtrl && !io.KeyAlt &&  io.KeyShift && !io.KeySuper; // Shift
+        bool CS =  io.KeyCtrl && !io.KeyAlt &&  io.KeyShift && !io.KeySuper; // Ctrl-Shift
+
+        if( N  && keyCode == VK_F5 ) { EditorDocumentMenuCommand( EditorDocumentMenuCommand_Run ); return true; }
+        if( C  && keyCode == ' ' )   { EditorDocumentMenuCommand( EditorDocumentMenuCommand_Run ); return true; }
+    }
+
+    return MyNodeGraph::HandleInput( keyAction, keyCode, mouseAction, id, x, y, pressure );
+}
+
 void OpenCVNodeGraph::Save()
 {
     EditorDocument::Save();
@@ -69,6 +88,11 @@ void OpenCVNodeGraph::Save()
 void OpenCVNodeGraph::Load()
 {
     MyNodeGraph::Load();
+}
+
+void OpenCVNodeGraph::Run()
+{
+    MyNodeGraph::Run();
 }
 
 void OpenCVNodeGraph::AddItemsAboveNodeGraphWindow()

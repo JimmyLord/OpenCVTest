@@ -30,8 +30,11 @@ public:
     virtual ~OpenCVNodeGraph();
 
     // Overrides.
+    virtual bool HandleInput(int keyAction, int keyCode, int mouseAction, int id, float x, float y, float pressure) override; // from EditorDocument.
+
     virtual void Save() override; // from EditorDocument.
     virtual void Load() override; // from EditorDocument.
+    virtual void Run() override; // from EditorDocument.
 
     virtual void AddItemsAboveNodeGraphWindow() override;
     virtual void AddAdditionalItemsToNodeContextMenu(MyNodeGraph::MyNode* pNode) override;

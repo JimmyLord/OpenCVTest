@@ -242,6 +242,11 @@ EditorDocument* OpenCVCore::AddDocumentMenu(EngineCore* pEngineCore, EditorDocum
         //    pDocument->EditorDocumentMenuCommand( EditorDocument::EditorDocumentMenuCommand_SaveAll );
         //}
 
+        if( ImGui::MenuItem( "Run", "F5", false, pDocument != nullptr ) )
+        {
+            pDocument->EditorDocumentMenuCommand( EditorDocument::EditorDocumentMenuCommand_Run );
+        }
+
         ImGui::EndMenu(); // "Document"
     }
 
