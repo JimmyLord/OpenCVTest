@@ -93,6 +93,29 @@ void OpenCVNodeGraph::Load()
 void OpenCVNodeGraph::Run()
 {
     MyNodeGraph::Run();
+
+    // If nothing is selected, find input nodes and run those, otherwise only run the selected nodes.
+    if( m_SelectedNodeIDs.size() == 0 )
+    {
+        // Find input nodes and run recursively.
+        for( int i=0; i<m_Nodes.size(); i++ )
+        {
+            OpenCVBaseNode* pNode = (OpenCVBaseNode*)m_Nodes[i];
+            if( strcmp( pNode->GetType(), "File_Input" ) == 0 )
+            {
+                pNode->Trigger( nullptr, true );
+            }
+        }
+    }
+    else
+    {
+        // Run selected nodes.
+        for( int i=0; i<m_SelectedNodeIDs.size(); i++ )
+        {
+            int nodeIndex = FindNodeIndexByID( m_SelectedNodeIDs[i] );
+            ((OpenCVBaseNode*)m_Nodes[nodeIndex])->Trigger( nullptr, false );
+        }
+    }
 }
 
 void OpenCVNodeGraph::AddItemsAboveNodeGraphWindow()
