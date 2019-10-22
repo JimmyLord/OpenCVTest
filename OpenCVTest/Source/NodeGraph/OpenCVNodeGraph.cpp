@@ -98,7 +98,7 @@ void OpenCVNodeGraph::Run()
     if( m_SelectedNodeIDs.size() == 0 )
     {
         // Find input nodes and run recursively.
-        for( int i=0; i<m_Nodes.size(); i++ )
+        for( unsigned int i=0; i<m_Nodes.size(); i++ )
         {
             OpenCVBaseNode* pNode = (OpenCVBaseNode*)m_Nodes[i];
             if( strcmp( pNode->GetType(), "File_Input" ) == 0 )
