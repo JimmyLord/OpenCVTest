@@ -70,6 +70,19 @@ public:
             }
         }
     }
+
+    cv::Mat* GetInputImage(uint32 slotID)
+    {
+        // Get Image from input node.
+        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, slotID ) );
+        if( pNode )
+        {
+            cv::Mat* pImage = pNode->GetValueMat();
+            if( pImage->empty() == false )
+                return pImage;
+        }
+        return nullptr;
+    }
 };
 
 #define VSNAddVar ComponentBase::AddVariable_Base

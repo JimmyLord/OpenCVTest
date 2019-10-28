@@ -67,6 +67,7 @@ void OpenCVNodeGraph::Save()
 
         // Create JSON string.
         cJSON* jNodeGraph = ExportAsJSONObject();
+		cJSON_AddNumberToObject( jNodeGraph, "m_ImageWidth", m_ImageWidth );
 
         char* jsonString = cJSON_Print( jNodeGraph );
 
@@ -85,10 +86,10 @@ void OpenCVNodeGraph::Save()
     }
 }
 
-void OpenCVNodeGraph::Load()
-{
-    MyNodeGraph::Load();
-}
+//void OpenCVNodeGraph::Load()
+//{
+//    MyNodeGraph::Load();
+//}
 
 void OpenCVNodeGraph::Run()
 {
@@ -116,6 +117,13 @@ void OpenCVNodeGraph::Run()
             ((OpenCVBaseNode*)m_Nodes[nodeIndex])->Trigger( nullptr, false );
         }
     }
+}
+
+void OpenCVNodeGraph::ImportFromJSONObject(cJSON* jNodeGraph)
+{
+	MyNodeGraph::ImportFromJSONObject( jNodeGraph );
+
+	cJSONExt_GetFloat( jNodeGraph, "m_ImageWidth", &m_ImageWidth );
 }
 
 void OpenCVNodeGraph::AddItemsAboveNodeGraphWindow()

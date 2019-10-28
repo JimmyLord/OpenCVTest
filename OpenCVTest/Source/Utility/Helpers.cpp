@@ -77,7 +77,7 @@ void ShiftTopLeftToCenter(cv::Mat& image)
     tmp.copyTo( q2 );
 }
 
-int NextPowerOfTwo(int value)
+uint32 NextPowerOfTwo(int value)
 {
     if( value < 0 )
         return 0;
@@ -91,7 +91,7 @@ int NextPowerOfTwo(int value)
 }
 
 // From https://gist.github.com/zhangzhensong/03f67947c22acb5ee922
-void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture)
+void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture, uint32* w, uint32* h)
 {
     if( image.empty() )
     {
@@ -115,8 +115,8 @@ void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture)
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
 
         // Pad the image out to the nearest power or two.
-        int pow2cols = NextPowerOfTwo( image.cols );
-        int pow2rows = NextPowerOfTwo( image.rows );
+        uint32 pow2cols = NextPowerOfTwo( image.cols );
+        uint32 pow2rows = NextPowerOfTwo( image.rows );
         cv::Mat temp;
         cv::copyMakeBorder( image, temp, 0, pow2rows - image.rows, 0, pow2cols - image.cols, BORDER_CONSTANT );
 
@@ -132,7 +132,36 @@ void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture)
                       GL_RGB,             // Input image format (i.e. GL_RGB, GL_RGBA, GL_BGR etc.)
                       GL_UNSIGNED_BYTE,   // Image data type
                       temp.ptr() );       // The actual image data itself
+
+        if( w ) *w = pow2cols;
+        if( h ) *h = pow2rows;
     }
+}
+
+void CopyFBOToCVMat(FBODefinition* pFBO, cv::Mat& dest, bool bindFBO)
+{
+    int cols = pFBO->GetWidth();
+    int rows = pFBO->GetHeight();
+
+    int FBOsize = pFBO->GetTextureWidth() * pFBO->GetTextureHeight() * 3;
+    uint8* pixels = MyNew uint8[FBOsize];
+
+    if( bindFBO ) pFBO->Bind( true );
+    g_pRenderer->ReadPixels( 0, 0, cols, rows, MyRE::PixelFormat_BGR, MyRE::PixelDataType_UByte, pixels );
+    if( bindFBO ) pFBO->Unbind( true );
+
+    Mat temp( rows, cols, CV_8UC3 );
+
+    int CVStride = (int)temp.step.buf[0];
+    int GLStride = (cols*3 + 3) & ~0x03;
+    for( int y=0; y<rows; y++ )
+    {
+        memcpy( &temp.data[y*CVStride], &pixels[y*GLStride], cols*3 );
+    }
+
+    delete[] pixels;
+
+    dest = temp;
 }
 
 TextureDefinition* CreateOrUpdateTextureDefinitionFromOpenCVMat(cv::Mat* pImage, TextureDefinition* pOldTexture)
@@ -144,10 +173,14 @@ TextureDefinition* CreateOrUpdateTextureDefinitionFromOpenCVMat(cv::Mat* pImage,
     if( pOldTexture != nullptr )
         textureID = ((Texture_OpenGL*)pOldTexture)->GetTextureID();
 
-    BindCVMat2GLTexture( *pImage, textureID );
+    unsigned int w, h;
+    BindCVMat2GLTexture( *pImage, textureID, &w, &h );
 
     if( pOldTexture == nullptr )
         pOldTexture = MyNew Texture_OpenGL( textureID );
+
+    ((Texture_OpenGL*)pOldTexture)->SetWidth( w );
+    ((Texture_OpenGL*)pOldTexture)->SetHeight( h );
 
     return pOldTexture;
 }
@@ -157,8 +190,8 @@ void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, fl
     if( pTexture != nullptr )
     {
         float aspect = (float)pImage->rows / pImage->cols;
-        int pow2cols = NextPowerOfTwo( pImage->cols );
-        int pow2rows = NextPowerOfTwo( pImage->rows );
+        uint32 pow2cols = NextPowerOfTwo( pImage->cols );
+        uint32 pow2rows = NextPowerOfTwo( pImage->rows );
 
         ImVec2 pos = ImGui::GetCursorScreenPos();
 
@@ -170,7 +203,7 @@ void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, fl
             ImGuiIO& io = ImGui::GetIO();
 
             ImGui::BeginTooltip();
-            
+
             Vector2 textureSize = Vector2( (float)pow2cols, (float)pow2rows );
             Vector2 imageSizeNative = Vector2( (float)pImage->cols, (float)pImage->rows );
             Vector2 regionSizeNative = Vector2( pixelsToShow, pixelsToShow*aspect );
@@ -184,6 +217,18 @@ void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, fl
 
             Vector2 uv0 = regionBLNative / textureSize;
             Vector2 uv1 = uv0 + regionSizeNative / textureSize;
+
+            int type = pImage->type();
+            if( type == CV_8UC3 )
+            {
+                Vec3b color = pImage->at<Vec3b>( (int)regionCenterNative.y, (int)regionCenterNative.x );
+                ImGui::Text( "(%d,%d) %d,%d,%d", (int)regionCenterNative.x, (int)regionCenterNative.y, color[2], color[1], color[0] );
+            }
+            else
+            {
+                uint8 intensity = pImage->at<uchar>( (int)regionCenterNative.y, (int)regionCenterNative.x );
+                ImGui::Text( "(%d,%d) %d", (int)regionCenterNative.x, (int)regionCenterNative.y, intensity );
+            }
 
             ImGui::Image( (void*)pTexture, ImVec2( 128, 128 * aspect ), uv0, uv1, ImColor(255,255,255,255), ImColor(255,255,255,128));
             
@@ -204,4 +249,5 @@ void PrintFloatBadlyWithPrecision(std::string& str, float value, int maxDecimalP
 
     str.erase( str.find_last_not_of('0') + 1, std::string::npos );
     str.erase( str.find_last_not_of('.') + 1, std::string::npos );
+    replace( str.begin(), str.end(), '.', '_' );
 }

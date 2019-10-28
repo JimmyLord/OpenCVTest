@@ -13,9 +13,10 @@ void ShowDFTResult(const cv::String windowName, cv::Mat& image, int width, int p
 
 void ShiftTopLeftToCenter(cv::Mat& image);
 
-int NextPowerOfTwo(int value);
+uint32 NextPowerOfTwo(int value);
 
-void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture);
+void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture, uint32* w, uint32* h);
+void CopyFBOToCVMat(FBODefinition* pFBO, cv::Mat& dest, bool bindFBO);
 TextureDefinition* CreateOrUpdateTextureDefinitionFromOpenCVMat(cv::Mat* pImage, TextureDefinition* pOldTexture = nullptr);
 void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, float size, float pixelsToShow);
 
