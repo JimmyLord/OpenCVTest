@@ -71,108 +71,106 @@ public:
         //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
-        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
-        if( pNode == nullptr )
-            return false;
-        cv::Mat* pImage = pNode->GetValueMat();
-        if( pImage->empty() == true )
-            return false;
+        cv::Mat* pImage = GetInputImage( 0 );
 
-        cv::Mat imageGray;
-        cvtColor( *pImage, imageGray, cv::COLOR_BGR2GRAY );
-        equalizeHist( imageGray, imageGray );
-
-        // Make a copy of the source image, we'll draw shapes into this one.
-        pImage->copyTo( m_Image );
-
-        // Find the face.
-        std::vector<cv::Rect> faceRects;
+        if( pImage )
         {
-            m_FaceClassifier.detectMultiScale( imageGray, faceRects );
+            cv::Mat imageGray;
+            cvtColor( *pImage, imageGray, cv::COLOR_BGR2GRAY );
+            equalizeHist( imageGray, imageGray );
 
-            // Draw a rectangle around the face and find more features.
-            for( uint32 i=0; i<faceRects.size(); i++ )
+            // Make a copy of the source image, we'll draw shapes into this one.
+            pImage->copyTo( m_Image );
+
+            // Find the face.
+            std::vector<cv::Rect> faceRects;
             {
-                cv::Rect faceRect = faceRects[i];
+                m_FaceClassifier.detectMultiScale( imageGray, faceRects );
 
-                // Draw a blue rectangle around the face.
-                rectangle( m_Image, faceRect, cv::Scalar( 255, 0, 0 ), 4 );
-
-                // Find the eyes.
-                std::vector<cv::Rect> eyeRects;
-                if( faceRects.size() > 0 )
+                // Draw a rectangle around the face and find more features.
+                for( uint32 i=0; i<faceRects.size(); i++ )
                 {
-                    // Start with just the face region.
-                    cv::Mat imageFace = imageGray( faceRect );
+                    cv::Rect faceRect = faceRects[i];
+
+                    // Draw a blue rectangle around the face.
+                    rectangle( m_Image, faceRect, cv::Scalar( 255, 0, 0 ), 4 );
 
                     // Find the eyes.
-                    m_EyesClassifier.detectMultiScale( imageFace, eyeRects );
-
-                    // Draw blue circles around the eyes.
-                    for( uint32 j=0; j<eyeRects.size(); j++ )
+                    std::vector<cv::Rect> eyeRects;
+                    if( faceRects.size() > 0 )
                     {
-                        cv::Rect eyeRect = eyeRects[j];
-                        cv::Point center( faceRect.x + eyeRect.x + eyeRect.width/2,
-                                          faceRect.y + eyeRect.y + eyeRect.height/2 );
-                        int radius = cvRound( (eyeRect.width + eyeRect.height) * 0.25 );
-                        circle( m_Image, center, radius, cv::Scalar( 255, 0, 0 ), 4 );
-                    }
-                }
+                        // Start with just the face region.
+                        cv::Mat imageFace = imageGray( faceRect );
 
-                // Find the nose.
-                std::vector<cv::Rect> noseRects;
-                cv::Rect faceBelowEyesRect = faceRect;
-                if( eyeRects.size() > 0 )
-                {
-                    // Start with just the face region below the eyes.
-                    faceBelowEyesRect.y = faceRect.y + eyeRects[0].y + eyeRects[0].height/2;
-                    faceBelowEyesRect.height -= faceBelowEyesRect.y - faceRect.y;
-                    cv::Mat imageFace = imageGray( faceBelowEyesRect );
+                        // Find the eyes.
+                        m_EyesClassifier.detectMultiScale( imageFace, eyeRects );
+
+                        // Draw blue circles around the eyes.
+                        for( uint32 j=0; j<eyeRects.size(); j++ )
+                        {
+                            cv::Rect eyeRect = eyeRects[j];
+                            cv::Point center( faceRect.x + eyeRect.x + eyeRect.width/2,
+                                              faceRect.y + eyeRect.y + eyeRect.height/2 );
+                            int radius = cvRound( (eyeRect.width + eyeRect.height) * 0.25 );
+                            circle( m_Image, center, radius, cv::Scalar( 255, 0, 0 ), 4 );
+                        }
+                    }
 
                     // Find the nose.
-                    m_NoseClassifier.detectMultiScale( imageFace, noseRects );
-
-                    // Draw red circles around the nose.
-                    for( uint32 j=0; j<noseRects.size(); j++ )
+                    std::vector<cv::Rect> noseRects;
+                    cv::Rect faceBelowEyesRect = faceRect;
+                    if( eyeRects.size() > 0 )
                     {
-                        cv::Rect noseRect = noseRects[j];
-                        cv::Point center( faceBelowEyesRect.x + noseRect.x + noseRect.width/2,
-                                            faceBelowEyesRect.y + noseRect.y + noseRect.height/2 );
-                        int radius = cvRound( (noseRect.width + noseRect.height) * 0.25 );
-                        circle( m_Image, center, radius, cv::Scalar( 0, 0, 255 ), 4 );
-                    }
-                }
+                        // Start with just the face region below the eyes.
+                        faceBelowEyesRect.y = faceRect.y + eyeRects[0].y + eyeRects[0].height/2;
+                        faceBelowEyesRect.height -= faceBelowEyesRect.y - faceRect.y;
+                        cv::Mat imageFace = imageGray( faceBelowEyesRect );
 
-                // Find the mouth.
-                std::vector<cv::Rect> mouthRects;
-                if( noseRects.size() > 0 )
-                {
-                    // Start with just the face region below the nose.
-                    cv::Rect faceBelowNoseRect = faceBelowEyesRect;
-                    faceBelowNoseRect.y = faceBelowEyesRect.y + noseRects[0].y + noseRects[0].height/2;
-                    faceBelowNoseRect.height -= faceBelowNoseRect.y - faceBelowEyesRect.y;
-                    cv::Mat imageFace = imageGray( faceBelowNoseRect );
+                        // Find the nose.
+                        m_NoseClassifier.detectMultiScale( imageFace, noseRects );
+
+                        // Draw red circles around the nose.
+                        for( uint32 j=0; j<noseRects.size(); j++ )
+                        {
+                            cv::Rect noseRect = noseRects[j];
+                            cv::Point center( faceBelowEyesRect.x + noseRect.x + noseRect.width/2,
+                                                faceBelowEyesRect.y + noseRect.y + noseRect.height/2 );
+                            int radius = cvRound( (noseRect.width + noseRect.height) * 0.25 );
+                            circle( m_Image, center, radius, cv::Scalar( 0, 0, 255 ), 4 );
+                        }
+                    }
 
                     // Find the mouth.
-                    m_MouthClassifier.detectMultiScale( imageFace, mouthRects );
-
-                    // Draw green circles around the mouth.
-                    for( uint32 j=0; j<mouthRects.size(); j++ )
+                    std::vector<cv::Rect> mouthRects;
+                    if( noseRects.size() > 0 )
                     {
-                        cv::Rect mouthRect = mouthRects[j];
-                        cv::Point center( faceBelowNoseRect.x + mouthRect.x + mouthRect.width/2,
-                                          faceBelowNoseRect.y + mouthRect.y + mouthRect.height/2 );
-                        int radius = cvRound( (mouthRect.width + mouthRect.height) * 0.25 );
-                        circle( m_Image, center, radius, cv::Scalar( 0, 255, 0 ), 4 );
+                        // Start with just the face region below the nose.
+                        cv::Rect faceBelowNoseRect = faceBelowEyesRect;
+                        faceBelowNoseRect.y = faceBelowEyesRect.y + noseRects[0].y + noseRects[0].height/2;
+                        faceBelowNoseRect.height -= faceBelowNoseRect.y - faceBelowEyesRect.y;
+                        cv::Mat imageFace = imageGray( faceBelowNoseRect );
+
+                        // Find the mouth.
+                        m_MouthClassifier.detectMultiScale( imageFace, mouthRects );
+
+                        // Draw green circles around the mouth.
+                        for( uint32 j=0; j<mouthRects.size(); j++ )
+                        {
+                            cv::Rect mouthRect = mouthRects[j];
+                            cv::Point center( faceBelowNoseRect.x + mouthRect.x + mouthRect.width/2,
+                                              faceBelowNoseRect.y + mouthRect.y + mouthRect.height/2 );
+                            int radius = cvRound( (mouthRect.width + mouthRect.height) * 0.25 );
+                            circle( m_Image, center, radius, cv::Scalar( 0, 255, 0 ), 4 );
+                        }
                     }
                 }
             }
+
+            m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
+
+            // Trigger the output nodes.
+            TriggerOutputNodes( pEvent, recursive );
         }
-
-        m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
-
-        // Trigger the output nodes.
-        TriggerOutputNodes( pEvent, recursive );
 
         return false;
     }

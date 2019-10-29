@@ -362,19 +362,17 @@ public:
         //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
-        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
-        if( pNode == nullptr )
-            return false;
-        cv::Mat* pImage = pNode->GetValueMat();
-        if( pImage->empty() == true )
-            return false;
+        cv::Mat* pImage = GetInputImage( 0 );
 
-        // Convert to Grayscale.
-        cv::cvtColor( *pImage, m_Image, cv::COLOR_BGR2GRAY );
-        m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
+        if( pImage )
+        {
+            // Convert to Grayscale.
+            cv::cvtColor( *pImage, m_Image, cv::COLOR_BGR2GRAY );
+            m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
-        // Trigger the output nodes.
-        TriggerOutputNodes( pEvent, recursive );
+            // Trigger the output nodes.
+            TriggerOutputNodes( pEvent, recursive );
+        }
 
         return false;
     }
@@ -428,34 +426,24 @@ public:
         OpenCVBaseNode::DrawContents();
 
         // Get Image from input node.
-        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
-        if( pNode )
+        cv::Mat* pImage = GetInputImage( 0 );
+
+        if( pImage )
         {
-            cv::Mat* pImage = pNode->GetValueMat();
-            if( pImage->empty() == true )
-                return;
+            bool valuesChanged = false;
 
-            if( pImage->cols > 0 )
+            if( ImGui::DragInt( "Top",    &m_TopLeft.y, 1.0f, 0, pImage->rows - m_Size.y ) ) { valuesChanged = true; }
+            if( ImGui::DragInt( "Left",   &m_TopLeft.x, 1.0f, 0, pImage->cols - m_Size.x ) ) { valuesChanged = true; }
+            if( ImGui::DragInt( "Width",  &m_Size.x,    1.0f, 1, pImage->cols ) ) { valuesChanged = true; }
+            if( ImGui::DragInt( "Height", &m_Size.y,    1.0f, 1, pImage->rows ) ) { valuesChanged = true; }
+
+            if( valuesChanged )
             {
-                bool valuesChanged = false;
-
-                if( ImGui::DragInt( "Top",    &m_TopLeft.y, 1.0f, 0, pImage->rows - m_Size.y ) ) { valuesChanged = true; }
-                if( ImGui::DragInt( "Left",   &m_TopLeft.x, 1.0f, 0, pImage->cols - m_Size.x ) ) { valuesChanged = true; }
-                if( ImGui::DragInt( "Width",  &m_Size.x,    1.0f, 1, pImage->cols ) ) { valuesChanged = true; }
-                if( ImGui::DragInt( "Height", &m_Size.y,    1.0f, 1, pImage->rows ) ) { valuesChanged = true; }
-
-                if( valuesChanged )
-                {
-                    Validate( pImage );
-                    QuickRun( true );
-                }
-
-                DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+                Validate( pImage );
+                QuickRun( true );
             }
-            else
-            {
-                ImGui::Text( "No input image." );
-            }
+
+            DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
         }
         else
         {
@@ -468,23 +456,21 @@ public:
         //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
-        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
-        if( pNode == nullptr )
-            return false;
-        cv::Mat* pImage = pNode->GetValueMat();
-        if( pImage->empty() == true )
-            return false;
+        cv::Mat* pImage = GetInputImage( 0 );
 
-        Validate( pImage );
+        if( pImage )
+        {
+            Validate( pImage );
 
-        // Crop out a subregion of the image.
-        cv::cvtColor( *pImage, m_Image, cv::COLOR_BGR2GRAY );
-        cv::Rect cropArea( m_TopLeft.x, m_TopLeft.y, m_Size.x, m_Size.y );
-        m_Image = (*pImage)( cropArea );
-        m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
+            // Crop out a subregion of the image.
+            cv::cvtColor( *pImage, m_Image, cv::COLOR_BGR2GRAY );
+            cv::Rect cropArea( m_TopLeft.x, m_TopLeft.y, m_Size.x, m_Size.y );
+            m_Image = (*pImage)( cropArea );
+            m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
-        // Trigger the output nodes.
-        TriggerOutputNodes( pEvent, recursive );
+            // Trigger the output nodes.
+            TriggerOutputNodes( pEvent, recursive );
+        }
 
         return false;
     }
@@ -608,35 +594,33 @@ public:
         //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
-        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
-        if( pNode == nullptr )
-            return false;
-        cv::Mat* pImage = pNode->GetValueMat();
-        if( pImage->empty() == true )
-            return false;
+        cv::Mat* pImage = GetInputImage( 0 );
 
-        // Apply the threshold filter.
-        if( m_ThresholdType < 5 )
+        if( pImage )
         {
-            cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, m_ThresholdType );
-        }
-        else
-        {
-            if( m_ThresholdType == 5 )
+            // Apply the threshold filter.
+            if( m_ThresholdType < 5 )
             {
-                cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, cv::THRESH_TOZERO );
-                m_Image.setTo( 255, m_Image == 0 );
+                cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, m_ThresholdType );
             }
-            if( m_ThresholdType == 6 )
+            else
             {
-                cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, cv::THRESH_TOZERO_INV );
-                m_Image.setTo( 255, m_Image == 0 );
+                if( m_ThresholdType == 5 )
+                {
+                    cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, cv::THRESH_TOZERO );
+                    m_Image.setTo( 255, m_Image == 0 );
+                }
+                if( m_ThresholdType == 6 )
+                {
+                    cv::threshold( *pImage, m_Image, m_ThresholdValue, 255, cv::THRESH_TOZERO_INV );
+                    m_Image.setTo( 255, m_Image == 0 );
+                }
             }
-        }
-        m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
+            m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
-        // Trigger the output nodes.
-        TriggerOutputNodes( pEvent, recursive );
+            // Trigger the output nodes.
+            TriggerOutputNodes( pEvent, recursive );
+        }
 
         return false;
     }
@@ -720,23 +704,21 @@ public:
         //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
-        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
-        if( pNode == nullptr )
-            return false;
-        cv::Mat* pImage = pNode->GetValueMat();
-        if( pImage->empty() == true )
-            return false;
+        cv::Mat* pImage = GetInputImage( 0 );
 
-        // Apply the Bilateral filter.
-        double timeBefore = MyTime_GetSystemTime();
-        cv::bilateralFilter( *pImage, m_Image, m_WindowSize, m_SigmaColor, m_SigmaSpace );
-        double timeAfter = MyTime_GetSystemTime();
-        m_LastProcessTime = timeAfter - timeBefore;
+        if( pImage )
+        {
+            // Apply the Bilateral filter.
+            double timeBefore = MyTime_GetSystemTime();
+            cv::bilateralFilter( *pImage, m_Image, m_WindowSize, m_SigmaColor, m_SigmaSpace );
+            double timeAfter = MyTime_GetSystemTime();
+            m_LastProcessTime = timeAfter - timeBefore;
 
-        m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
+            m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
-        // Trigger the output nodes.
-        TriggerOutputNodes( pEvent, recursive );
+            // Trigger the output nodes.
+            TriggerOutputNodes( pEvent, recursive );
+        }
 
         return false;
     }
