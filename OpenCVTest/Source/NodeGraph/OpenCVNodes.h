@@ -116,13 +116,34 @@ public:
     const char* GetType() { return "File_Input"; }
     //virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) override;
 
+    void ChooseFile()
+    {
+        const char* filename = FileOpenDialog( "Data\\", "Images\0*.png;*.jpg\0All\0*.*\0" );
+        if( filename[0] != '\0' )
+        {
+            char path[MAX_PATH];
+            strcpy_s( path, MAX_PATH, filename );
+            const char* relativePath = GetRelativePath( path );
+
+            m_Filename = relativePath;
+            QuickRun( true );
+        }
+    }
+
     virtual void DrawTitle() override
     {
         if( m_Expanded )
+        {
             OpenCVBaseNode::DrawTitle();
+        }
         else
         {
-            ImGui::Text( "%s: %.18s", m_Name, m_Filename.c_str() );
+            if( ImGui::Button( "..." ) )
+            {
+                ChooseFile();
+            }
+            ImGui::SameLine();
+            ImGui::Text( "%s: %.14s", m_Name, m_Filename.c_str() );
             if( ImGui::IsItemHovered() && m_Filename.length() > 18 )
             {
                 ImGui::BeginTooltip();
@@ -138,16 +159,7 @@ public:
 
         if( ImGui::Button( "Choose File..." ) )
         {
-            const char* filename = FileOpenDialog( "Data\\", "Images\0*.png;*.jpg\0All\0*.*\0" );
-            if( filename[0] != '\0' )
-            {
-                char path[MAX_PATH];
-                strcpy_s( path, MAX_PATH, filename );
-                const char* relativePath = GetRelativePath( path );
-
-                m_Filename = relativePath;
-                QuickRun( true );
-            }
+            ChooseFile();
         }
 
         ImGui::Text( "File: %.22s", m_Filename.c_str() );
