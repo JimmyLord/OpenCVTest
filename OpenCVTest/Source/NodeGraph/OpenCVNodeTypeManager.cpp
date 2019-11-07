@@ -8,6 +8,7 @@
 #include "OpenCVNodeGraph.h"
 #include "OpenCVNodes.h"
 #include "OpenCVNodes_Face.h"
+#include "OpenCVNodes_Mask.h"
 
 #undef AddVar
 #define AddVar ComponentBase::AddVariable_Base
@@ -35,6 +36,7 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::AddCreateNodeItemsToContextMenu(Vect
 
     if( ImGui::BeginMenu( "Filter" ) )
     {
+        if( ImGui::MenuItem( "Mask" ) )      { ImGui::EndMenu(); return CreateNode( "Filter_Mask", pos, pNodeGraph ); }
         if( ImGui::MenuItem( "Threshold" ) ) { ImGui::EndMenu(); return CreateNode( "Filter_Threshold", pos, pNodeGraph ); }
         if( ImGui::MenuItem( "Bilateral" ) ) { ImGui::EndMenu(); return CreateNode( "Filter_Bilateral", pos, pNodeGraph ); }
         ImGui::EndMenu();
@@ -59,6 +61,7 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::CreateNode(const char* typeName, Vec
     if( TypeIs( "File_Output" )       return MyNew OpenCVNode_File_Output(       (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Output", pos );
     if( TypeIs( "Convert_Grayscale" ) return MyNew OpenCVNode_Convert_Grayscale( (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Grayscale", pos );
     if( TypeIs( "Convert_Crop" )      return MyNew OpenCVNode_Convert_Crop(      (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Crop", pos );
+    if( TypeIs( "Filter_Mask" )       return MyNew OpenCVNode_Filter_Mask(       (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Mask", pos );
     if( TypeIs( "Filter_Threshold" )  return MyNew OpenCVNode_Filter_Threshold(  (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Threshold", pos );
     if( TypeIs( "Filter_Bilateral" )  return MyNew OpenCVNode_Filter_Bilateral(  (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Bilateral", pos );
     if( TypeIs( "Face_Detect" )       return MyNew OpenCVNode_Face_Detect(       (OpenCVNodeGraph*)pNodeGraph, newNodeID, "FaceDetect", pos );

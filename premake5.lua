@@ -48,6 +48,7 @@ workspace "OpenCVTest"
 
 ----------------------------------------------- All Projects ------------------------------------------------
 PremakeConfig_UseMemoryTracker = false
+PremakeConfig_UseMono = false
 
 ------------------------------------------------ MyFramework ------------------------------------------------
 MyFrameworkPremakeConfig_ForceIncludeEditorFiles = true
@@ -94,6 +95,7 @@ project "OpenCVTest"
         "OpenCVTest/Source/**.cpp",
         "OpenCVTest/Source/**.h",
         "premake5.lua",
+        "PremakeGenerateBuildFiles.bat",
         ".gitignore",
     }
 
