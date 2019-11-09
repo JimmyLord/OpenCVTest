@@ -26,7 +26,7 @@ protected:
 
 public:
     OpenCVNode_Filter_Mask(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
-        : OpenCVBaseNode( pNodeGraph, id, name, pos, 3, 1 )
+        : OpenCVBaseNode( pNodeGraph, id, name, pos, 4, 1 )
     {
         m_pTexture = nullptr;
         //VSNAddVar( &m_VariablesList, "Float", ComponentVariableType_Float, MyOffsetOf( this, &this->m_Float ), true, true, "", nullptr, nullptr, nullptr );
@@ -60,28 +60,44 @@ public:
         //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
-        cv::Mat* pImage1 = GetInputImage( 0 );
-        cv::Mat* pImage2 = GetInputImage( 1 );
-        cv::Mat* pImageMask = GetInputImage( 2 );
+        cv::Mat* pImage1 = GetInputImage( 0 ); // 255
+        cv::Mat* pImage2 = GetInputImage( 1 ); // 10 - 245
+        cv::Mat* pImage3 = GetInputImage( 2 ); // 0
+        cv::Mat* pImageMask = GetInputImage( 3 );
 
-        if( pImage1 && pImage2 && pImageMask )
+        if( pImageMask && ( pImage1 || pImage2 || pImage3 ) )
         {
-            cv::Mat maskGray;
-            cv::Mat maskInverse;
+            cv::Mat maskOriginal;
+            cv::Mat maskHigh;
+            cv::Mat maskMid;
+            cv::Mat maskLow;
 
-            cv::cvtColor( *pImageMask, maskGray, cv::COLOR_BGR2GRAY );
-            maskInverse = 255 - maskGray;
+            cv::cvtColor( *pImageMask, maskOriginal, cv::COLOR_BGR2GRAY );
+            maskHigh = maskOriginal - 150; // 150-255's become only non-zeroes.
+            maskMid = maskOriginal;
+            maskLow = 100 - maskOriginal;  // 0-100's become only non-zeroes.
 
-            cv::Mat image1Color = *pImage1;
-            cv::Mat image2Color = *pImage2;
-
-            if( image1Color.type() == CV_8UC1 )
-                cv::cvtColor( *pImage1, image1Color, cv::COLOR_GRAY2BGR );
-            if( image2Color.type() == CV_8UC1 )
-                cv::cvtColor( *pImage2, image2Color, cv::COLOR_GRAY2BGR );
-
-            image1Color.copyTo( m_Image, maskGray );
-            image2Color.copyTo( m_Image, maskInverse );
+            if( pImage2 )
+            {
+                cv::Mat image2Color = *pImage2;
+                if( image2Color.type() == CV_8UC1 )
+                    cv::cvtColor( *pImage2, image2Color, cv::COLOR_GRAY2BGR );
+                image2Color.copyTo( m_Image, maskMid ); // Copies Highs and Mids.
+            }
+            if( pImage1 )
+            {
+                cv::Mat image1Color = *pImage1;
+                if( image1Color.type() == CV_8UC1 )
+                    cv::cvtColor( *pImage1, image1Color, cv::COLOR_GRAY2BGR );
+                image1Color.copyTo( m_Image, maskHigh ); // Overwrite Highs from Image2.
+            }
+            if( pImage3 )
+            {
+                cv::Mat image3Color = *pImage3;
+                if( image3Color.type() == CV_8UC1 )
+                    cv::cvtColor( *pImage3, image3Color, cv::COLOR_GRAY2BGR );
+                image3Color.copyTo( m_Image, maskLow ); // Copy Lows.
+            }
 
             m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
