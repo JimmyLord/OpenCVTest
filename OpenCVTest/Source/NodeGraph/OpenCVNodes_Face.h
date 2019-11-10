@@ -35,12 +35,6 @@ public:
         m_pTexture = nullptr;
         //VSNAddVar( &m_VariablesList, "Float", ComponentVariableType_Float, MyOffsetOf( this, &this->m_Float ), true, true, "", nullptr, nullptr, nullptr );
         
-        // Load classifiers from "Data/OpenCVHaarCascades" directory  
-        m_FaceClassifier.load( "Data/OpenCVHaarCascades/haarcascade_frontalface_default.xml" ) ;
-        m_EyesClassifier.load( "Data/OpenCVHaarCascades/haarcascade_eye_tree_eyeglasses.xml" );
-        //m_MouthClassifier.load( "Data/OpenCVHaarCascades/haarcascade_smile.xml" );
-        m_MouthClassifier.load( "Data/OtherHaarCascades/haarcascade_mcs_mouth.xml" );
-        m_NoseClassifier.load( "Data/OtherHaarCascades/haarcascade_mcs_nose.xml" );
     }
 
     ~OpenCVNode_Face_Detect()
@@ -50,6 +44,16 @@ public:
 
     const char* GetType() { return "Face_Detect"; }
     //virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) override;
+
+    void LoadClassifiers()
+    {
+        // Load classifiers from "Data/OpenCVHaarCascades" directory  
+        m_FaceClassifier.load( "Data/OpenCVHaarCascades/haarcascade_frontalface_default.xml" ) ;
+        m_EyesClassifier.load( "Data/OpenCVHaarCascades/haarcascade_eye_tree_eyeglasses.xml" );
+        //m_MouthClassifier.load( "Data/OpenCVHaarCascades/haarcascade_smile.xml" );
+        m_MouthClassifier.load( "Data/OtherHaarCascades/haarcascade_mcs_mouth.xml" );
+        m_NoseClassifier.load( "Data/OtherHaarCascades/haarcascade_mcs_nose.xml" );
+    }
 
     virtual void DrawTitle() override
     {
@@ -63,11 +67,23 @@ public:
     {
         OpenCVBaseNode::DrawContents();
 
+        if( m_FaceClassifier.empty() == true )
+        {
+            ImGui::Text( "Haar cascades not loaded." );
+            if( ImGui::Button( "Load" ) )
+            {
+                LoadClassifiers();
+            }
+        }
+
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
     {
+        if( m_FaceClassifier.empty() == true )
+            return false;
+
         //OpenCVBaseNode::Trigger( pEvent );
 
         // Get Image from input node.
