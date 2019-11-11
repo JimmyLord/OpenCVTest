@@ -15,14 +15,14 @@ function CopyFile(source, destination)
     end
 end
 
-monoInstallationPath = "C:/Program Files/Mono" -- TODO: Don't hardcode the path to mono installation.
+--monoInstallationPath = "C:/Program Files/Mono" -- TODO: Don't hardcode the path to mono installation.
 
 CopyFile( "Libraries/OpenCV/x64/vc15/bin/opencv_world411.dll", "OpenCVTest/opencv_world411.dll" )
 CopyFile( "Libraries/OpenCV/x64/vc15/bin/opencv_world411d.dll", "OpenCVTest/opencv_world411d.dll" )
 CopyFile( "Libraries/Framework/Libraries/pthreads-w32/dll/x64/pthreadVC2.dll", "OpenCVTest/pthreadVC2-x64.dll" )
-CopyFile( monoInstallationPath .. "/bin/mono-2.0-sgen.dll", "OpenCVTest/mono-2.0-sgen.dll" )
-os.mkdir( "OpenCVTest/mono/lib/mono/4.5" )
-CopyFile( monoInstallationPath .. "/lib/mono/4.5/mscorlib.dll", "OpenCVTest/mono/lib/mono/4.5/mscorlib.dll" )
+--CopyFile( monoInstallationPath .. "/bin/mono-2.0-sgen.dll", "OpenCVTest/mono-2.0-sgen.dll" )
+--os.mkdir( "OpenCVTest/mono/lib/mono/4.5" )
+--CopyFile( monoInstallationPath .. "/lib/mono/4.5/mscorlib.dll", "OpenCVTest/mono/lib/mono/4.5/mscorlib.dll" )
 
 -- Helper to include other premake.lua files.
 local rootFolder = os.getcwd()
@@ -34,11 +34,12 @@ BuildSingleProjectPremake = function(folder, filename)
 end
 
 ------------------------------------------------- Solution --------------------------------------------------
-workspace "OpenCVTest"
+workspace "OpenCVCourseWork"
     configurations  { "Debug", "Release" }
     location        ( "build" )
-    startproject    "OpenCVTest"
+    startproject    "OpenCVCourseWork"
     defines         { "MYFW_EDITOR", "MYFW_USING_IMGUI" }
+    cppdialect      "C++17"
 
     filter "system:windows"
         defines         "MYFW_WINDOWS"
@@ -71,7 +72,7 @@ group "Physics"
 group ""
 
 --------------------------------------------- OpenCVTest Project --------------------------------------------
-project "OpenCVTest"
+project "OpenCVCourseWork"
     location    "build"
     kind        "WindowedApp"
     language    "C++"
@@ -88,12 +89,15 @@ project "OpenCVTest"
         "$(SolutionDir)../Libraries/Framework/Libraries/b2Settings",
         "$(SolutionDir)../Libraries/Framework/Libraries/Box2D",
         "Libraries/OpenCV/include",
-        monoInstallationPath .. "/include/mono-2.0",
+        --monoInstallationPath .. "/include/mono-2.0",
     }
 
     files {
+        "OpenCVTest/Data/**.opencvnodegraph",
+        "OpenCVTest/Data/Shaders/**.glsl",
         "OpenCVTest/Source/**.cpp",
         "OpenCVTest/Source/**.h",
+        "PremakeGenerateBuildFiles.bat",
         "premake5.lua",
         "PremakeGenerateBuildFiles.bat",
         ".gitignore",
@@ -136,7 +140,7 @@ end
     filter "system:windows"
         libdirs {
             "Libraries/Framework/Libraries/pthreads-w32/lib/x64",
-            monoInstallationPath .. "/lib",
+            --monoInstallationPath .. "/lib",
         }
 
         links {
@@ -146,7 +150,7 @@ end
             "opengl32",
             "glu32",
             "xinput",
-            "mono-2.0-sgen",
+            --"mono-2.0-sgen",
         }
 
         linkoptions { "/DELAYLOAD:pthreadVC2.dll" }
