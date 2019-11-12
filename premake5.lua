@@ -34,10 +34,10 @@ BuildSingleProjectPremake = function(folder, filename)
 end
 
 ------------------------------------------------- Solution --------------------------------------------------
-workspace "OpenCVCourseWork"
+workspace "OpenCVTest"
     configurations  { "Debug", "Release" }
     location        ( "build" )
-    startproject    "OpenCVCourseWork"
+    startproject    "OpenCVTest"
     defines         { "MYFW_EDITOR", "MYFW_USING_IMGUI" }
     cppdialect      "C++17"
 
@@ -72,7 +72,7 @@ group "Physics"
 group ""
 
 --------------------------------------------- OpenCVTest Project --------------------------------------------
-project "OpenCVCourseWork"
+project "OpenCVTest"
     location    "build"
     kind        "WindowedApp"
     language    "C++"

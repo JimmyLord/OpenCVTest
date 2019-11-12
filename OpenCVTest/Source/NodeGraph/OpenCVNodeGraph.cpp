@@ -157,4 +157,10 @@ void OpenCVNodeGraph::AddAdditionalItemsToNodeContextMenu(MyNodeGraph::MyNode* p
     {
         ((OpenCVBaseNode*)pNode)->Trigger( nullptr, false );
     }
+
+    if( ImGui::MenuItem( "Zoom to native" ) )
+    {
+        cv::Mat* pMat = ((OpenCVBaseNode*)pNode)->GetValueMat();
+        SetImageWidth( (float)pMat->cols );
+    }
 }

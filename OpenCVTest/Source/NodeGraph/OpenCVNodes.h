@@ -170,10 +170,6 @@ public:
             ImGui::EndTooltip();
         }
         ImGui::Text( "Size: %dx%d", m_Image.cols, m_Image.rows );
-        if( ImGui::Button( "Zoom to native" ) )
-        {
-            m_pNodeGraph->SetImageWidth( (float)m_Image.cols );
-        }
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
     }
