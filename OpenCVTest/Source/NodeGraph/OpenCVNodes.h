@@ -18,6 +18,7 @@ class OpenCVNode_Convert_Grayscale;
 class OpenCVNode_Convert_Crop;
 class OpenCVNode_Filter_Threshold;
 class OpenCVNode_Filter_Bilateral;
+class OpenCVNode_Filter_Morphological;
 
 //====================================================================================================
 // OpenCVNode
@@ -756,6 +757,215 @@ public:
         PrintFloatBadlyWithPrecision( m_SettingsString, m_SigmaColor, 2 );
         m_SettingsString += "-s";
         PrintFloatBadlyWithPrecision( m_SettingsString, m_SigmaSpace, 2 );
+
+        return m_SettingsString.c_str();
+    }
+};
+
+//====================================================================================================
+// OpenCVNode_Filter_Morphological
+//====================================================================================================
+
+class OpenCVNode_Filter_Morphological : public OpenCVBaseNode
+{
+public:
+    enum class MorphType
+    {
+        Erode,
+        Dilate,
+        Open,
+        Close,
+        Gradient,
+        TopHat,
+        BlackHat,
+        NumTypes,
+    };
+
+    inline static std::string MorphTypeNames[(int)MorphType::NumTypes]
+    {
+        "Erode",
+        "Dilate",
+        "Open",
+        "Close",
+        "Gradient",
+        "TopHat",
+        "BlackHat",
+    };
+
+    const int cvMorphTypes[(int)MorphType::NumTypes]
+    {
+        cv::MORPH_ERODE,
+        cv::MORPH_DILATE,
+        cv::MORPH_OPEN,
+        cv::MORPH_CLOSE,
+        cv::MORPH_GRADIENT,
+        cv::MORPH_TOPHAT,
+        cv::MORPH_BLACKHAT,
+    };
+
+    enum class MorphKernel
+    {
+        Rect,
+        Cross,
+        Ellipse,
+        NumTypes,
+    };
+
+    inline static std::string MorphKernelNames[(int)MorphKernel::NumTypes]
+    {
+        "Rect",
+        "Cross",
+        "Ellipse",
+    };
+
+    const int cvMorphKernels[(int)MorphKernel::NumTypes]
+    {
+        cv::MORPH_RECT,
+        cv::MORPH_CROSS,
+        cv::MORPH_ELLIPSE,
+    };
+
+protected:
+    cv::Mat m_Image;
+    TextureDefinition* m_pTexture;
+    std::string m_SettingsString;
+    int m_WindowSize;
+    MorphType m_MorphType;
+    MorphKernel m_MorphKernel;
+
+public:
+    OpenCVNode_Filter_Morphological(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos)
+        : OpenCVBaseNode( pNodeGraph, id, name, pos, 1, 1 )
+    {
+        m_pTexture = nullptr;
+        m_WindowSize = 3;
+        m_MorphType = MorphType::Erode;
+        m_MorphKernel = MorphKernel::Rect;
+        //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
+    }
+
+    ~OpenCVNode_Filter_Morphological()
+    {
+        SAFE_RELEASE( m_pTexture );
+    }
+
+    const char* GetType() { return "Filter_Morphological"; }
+
+    virtual void DrawTitle() override
+    {
+        if( m_Expanded )
+        {
+            OpenCVBaseNode::DrawTitle();
+        }
+        else
+        {
+            ImGui::Text( "%s", m_Name );
+        }
+    }
+
+    virtual void DrawContents() override
+    {
+        OpenCVBaseNode::DrawContents();
+
+        if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun( false ); }
+
+        if( ImGui::BeginCombo( "Type", MorphTypeNames[(int)m_MorphType].c_str() ) )
+        {
+            for( int n = 0; n < (int)MorphType::NumTypes; n++ )
+            {
+                bool is_selected = (n == (int)m_MorphType);
+                if( ImGui::Selectable( MorphTypeNames[n].c_str(), is_selected ) )
+                {
+                    m_MorphType = (MorphType)n;
+                    QuickRun( false );
+                }
+                if( is_selected )
+                {
+                    // Set the initial focus when opening the combo (scrolling + for keyboard navigation support in the upcoming navigation branch)
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        if( ImGui::BeginCombo( "Kernel Shape", MorphKernelNames[(int)m_MorphKernel].c_str() ) )
+        {
+            for( int n = 0; n < (int)MorphKernel::NumTypes; n++ )
+            {
+                bool is_selected = (n == (int)m_MorphKernel);
+                if( ImGui::Selectable( MorphKernelNames[n].c_str(), is_selected ) )
+                {
+                    m_MorphKernel = (MorphKernel)n;
+                    QuickRun( false );
+                }
+                if( is_selected )
+                {
+                    // Set the initial focus when opening the combo (scrolling + for keyboard navigation support in the upcoming navigation branch)
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        ImGui::Text( "Runtime: %f", m_LastProcessTime );
+
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+    }
+
+    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    {
+        //OpenCVBaseNode::Trigger( pEvent );
+
+        // Get Image from input node.
+        cv::Mat* pImage = GetInputImage( 0 );
+
+        if( pImage )
+        {
+            // Apply the Morphological filter.
+            double timeBefore = MyTime_GetSystemTime();
+            
+            cv::Mat kernel = cv::getStructuringElement( cvMorphKernels[(int)m_MorphKernel],
+                                                        cv::Size( 2*m_WindowSize+1, 2*m_WindowSize+1 ),
+                                                        cv::Point( m_WindowSize, m_WindowSize ) ) * 255.0f;
+            cv::morphologyEx( *pImage, m_Image, cvMorphTypes[(int)m_MorphType], kernel );
+
+            double timeAfter = MyTime_GetSystemTime();
+            m_LastProcessTime = timeAfter - timeBefore;
+
+            m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
+
+            // Trigger the output nodes.
+            TriggerOutputNodes( pEvent, recursive );
+        }
+
+        return false;
+    }
+
+    virtual cJSON* ExportAsJSONObject() override
+    {
+        cJSON* jNode = OpenCVBaseNode::ExportAsJSONObject();
+        cJSON_AddNumberToObject( jNode, "m_WindowSize", m_WindowSize );
+        cJSON_AddNumberToObject( jNode, "m_MorphType", (int)m_MorphType );
+        cJSON_AddNumberToObject( jNode, "m_MorphKernel", (int)m_MorphKernel );
+        return jNode;
+    }
+
+    virtual void ImportFromJSONObject(cJSON* jNode) override
+    {
+        MyNode::ImportFromJSONObject( jNode );
+        cJSONExt_GetInt( jNode, "m_WindowSize", &m_WindowSize );
+        cJSONExt_GetInt( jNode, "m_MorphType", (int*)&m_MorphType );
+        cJSONExt_GetInt( jNode, "m_MorphKernel", (int*)&m_MorphKernel );
+    }
+
+    virtual cv::Mat* GetValueMat() override { return &m_Image; }
+    virtual const char* GetSettingsString() override
+    {
+        m_SettingsString = "-w" + std::to_string( m_WindowSize );
+        //m_SettingsString += "-c";
+        //PrintFloatBadlyWithPrecision( m_SettingsString, m_MorphType, 2 );
+        //m_SettingsString += "-s";
+        //PrintFloatBadlyWithPrecision( m_SettingsString, m_MorphKernel, 2 );
 
         return m_SettingsString.c_str();
     }
