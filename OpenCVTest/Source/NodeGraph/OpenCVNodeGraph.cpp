@@ -4,7 +4,8 @@
 #include "OpenCVPCH.h"
 
 #include "OpenCVNodeGraph.h"
-#include "OpenCVNodes.h"
+#include "OpenCVNodes_Base.h"
+#include "OpenCVNodes_Core.h"
 #include "OpenCVNodeTypeManager.h"
 
 OpenCVNodeGraph::OpenCVNodeGraph(EngineCore* pEngineCore, OpenCVNodeTypeManager* pNodeTypeManager)

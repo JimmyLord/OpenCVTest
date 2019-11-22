@@ -7,7 +7,7 @@
 #include "Utility/Helpers.h"
 #include "Utility/VectorTypes.h"
 #include "Libraries/Engine/MyEngine/SourceEditor/PlatformSpecific/FileOpenDialog.h"
-#include "OpenCVNodes.h"
+#include "OpenCVNodes_Base.h"
 
 class ComponentBase;
 

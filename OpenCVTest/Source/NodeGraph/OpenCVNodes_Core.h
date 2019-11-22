@@ -1,13 +1,15 @@
 //
 // Copyright (c) 2019 Jimmy Lord http://www.flatheadgames.com
 //
-#ifndef __OpenCVNodes_H__
-#define __OpenCVNodes_H__
+#ifndef __OpenCVNodes_Core_H__
+#define __OpenCVNodes_Core_H__
 
 #include "OpenCVNodeGraph.h"
 #include "Utility/Helpers.h"
 #include "Utility/VectorTypes.h"
 #include "Libraries/Engine/MyEngine/SourceEditor/PlatformSpecific/FileOpenDialog.h"
+
+#include "OpenCVNodes_Base.h"
 
 class ComponentBase;
 
@@ -19,72 +21,6 @@ class OpenCVNode_Convert_Crop;
 class OpenCVNode_Filter_Threshold;
 class OpenCVNode_Filter_Bilateral;
 class OpenCVNode_Filter_Morphological;
-
-//====================================================================================================
-// OpenCVNode
-//====================================================================================================
-
-class OpenCVBaseNode : public MyNodeGraph::MyNode
-{
-protected:
-    OpenCVNodeGraph* m_pNodeGraph; // Hide the m_pNodeGraph in the MyNode class with a pointer to an OpenCVNodeGraph.
-    double m_LastProcessTime;
-
-public:
-    OpenCVBaseNode(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int inputsCount, int outputsCount)
-        : MyNodeGraph::MyNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
-    {
-        m_pNodeGraph = pNodeGraph;
-        m_LastProcessTime = 0.0;
-    }
-
-    //virtual uint32 EmitLua(char* string, uint32 offset, uint32 bytesAllocated, uint32 tabDepth) { return 0; }
-
-    virtual cv::Mat* GetValueMat() { return nullptr; }
-    virtual const char* GetSettingsString() { return nullptr; }
-
-    void QuickRun(bool triggerJustThisNodeIfAutoRunIsOff)
-    {
-        if( m_pNodeGraph->GetAutoRun() ) 
-        {
-            // Trigger all nodes recursively.
-            Trigger( nullptr, true );
-        }
-        else if( triggerJustThisNodeIfAutoRunIsOff )
-        {
-            // Trigger just this node.
-            Trigger( nullptr, false );
-        }
-    }
-
-    virtual bool Trigger(MyEvent* pEvent = nullptr) { return false; }
-    virtual bool Trigger(MyEvent* pEvent = nullptr, bool recursive = true) { return false; }
-
-    void TriggerOutputNodes(MyEvent* pEvent, bool recursive)
-    {
-        if( recursive )
-        {
-            int count = 0;
-            while( OpenCVBaseNode* pNode = (OpenCVBaseNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 0, count++ ) )
-            {
-                pNode->Trigger( nullptr, true );
-            }
-        }
-    }
-
-    cv::Mat* GetInputImage(uint32 slotID)
-    {
-        // Get Image from input node.
-        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, slotID ) );
-        if( pNode )
-        {
-            cv::Mat* pImage = pNode->GetValueMat();
-            if( pImage->empty() == false )
-                return pImage;
-        }
-        return nullptr;
-    }
-};
 
 #define VSNAddVar ComponentBase::AddVariable_Base
 #define VSNAddVarEnum ComponentBase::AddVariableEnum_Base
@@ -971,4 +907,4 @@ public:
     }
 };
 
-#endif //__OpenCVNodes_H__
+#endif //__OpenCVNodes_Core_H__

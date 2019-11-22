@@ -6,7 +6,8 @@
 #include "OpenCVNodeTypeManager.h"
 
 #include "OpenCVNodeGraph.h"
-#include "OpenCVNodes.h"
+#include "OpenCVNodes_Base.h"
+#include "OpenCVNodes_Core.h"
 #include "OpenCVNodes_Face.h"
 #include "OpenCVNodes_Mask.h"
 
