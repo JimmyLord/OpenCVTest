@@ -120,8 +120,30 @@ void BindCVMat2GLTexture(cv::Mat& image, GLuint& imageTexture, uint32* w, uint32
         cv::Mat temp;
         cv::copyMakeBorder( image, temp, 0, pow2rows - image.rows, 0, pow2cols - image.cols, BORDER_CONSTANT );
 
-        // Convert from BGR to RGB, mainly needed for grayscale images, could just pass in GL_BGR below. // TODO: Improve.
-        cv::cvtColor( temp, temp, COLOR_BGR2RGB );
+        int type = image.type();
+        if( type == CV_8UC3 )
+        {
+            // Convert from BGR to RGB.
+            cv::cvtColor( temp, temp, COLOR_BGR2RGB );
+        }
+        else if( type == CV_32F )
+        {
+            double min;
+            double max;
+            cv::minMaxLoc( image, &min, &max );
+            float scale = 255.0f / (float)(max - min);
+            temp.convertTo( temp, CV_8UC1, scale );
+            cv::cvtColor( temp, temp, COLOR_GRAY2RGB );
+            //applyColorMap( temp, temp, cv::COLORMAP_JET );
+        }
+        else if( type == CV_8U )
+        {
+            // Convert from gray to RGB.
+            cv::cvtColor( temp, temp, COLOR_GRAY2RGB );
+        }
+        else
+        {
+        }
 
         glTexImage2D( GL_TEXTURE_2D,      // Type of texture
                       0,                  // Pyramid level (for mip-mapping) - 0 is the top level
@@ -223,6 +245,11 @@ void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, fl
             {
                 Vec3b color = pImage->at<Vec3b>( (int)regionCenterNative.y, (int)regionCenterNative.x );
                 ImGui::Text( "(%d,%d) %d,%d,%d", (int)regionCenterNative.x, (int)regionCenterNative.y, color[2], color[1], color[0] );
+            }
+            else if( type == CV_32F )
+            {
+                float value = pImage->at<float>( (int)regionCenterNative.y, (int)regionCenterNative.x );
+                ImGui::Text( "(%d,%d) %f", (int)regionCenterNative.x, (int)regionCenterNative.y, value );
             }
             else
             {

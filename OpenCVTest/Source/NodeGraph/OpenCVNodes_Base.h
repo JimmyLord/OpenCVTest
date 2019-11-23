@@ -23,7 +23,7 @@ protected:
 
 public:
     OpenCVBaseNode(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int inputsCount, int outputsCount)
-        : MyNodeGraph::MyNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
+    : MyNodeGraph::MyNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
     {
         m_pNodeGraph = pNodeGraph;
         m_LastProcessTime = 0.0;
@@ -77,8 +77,31 @@ public:
 };
 
 //====================================================================================================
-// OpenCVBaseNodeWithAutorun
+// OpenCVBaseNodeWithAutorun and OpenCVBaseFilter
 //====================================================================================================
+
+class OpenCVBaseFilter
+{
+protected:
+    GameCore* m_pGameCore;
+
+    // Working variables.
+    cv::Mat& m_Dest;
+    cv::Mat* m_pSource;
+
+public:
+    OpenCVBaseFilter(GameCore* pGameCore, cv::Mat& dest)
+    : m_Dest( dest )
+    {
+        m_pGameCore = pGameCore;
+        m_pSource = nullptr;
+    }
+    virtual ~OpenCVBaseFilter() {}
+
+    virtual void Reset(cv::Mat* pSource, int numStagesToRun) = 0;
+    virtual bool Step() = 0; // Returns true when finished.
+    virtual void Output(int stage) = 0;
+};
 
 class OpenCVBaseNodeWithAutorun : public OpenCVBaseNode
 {
@@ -87,7 +110,7 @@ protected:
     TextureDefinition* m_pTexture;
     std::string m_SettingsString;
 
-    double m_LastProcessTime;
+    OpenCVBaseFilter* m_pFilter;
 
     bool m_Running;
     bool m_AutoRun;
@@ -103,9 +126,11 @@ protected:
 
 public:
     OpenCVBaseNodeWithAutorun(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int inputsCount, int outputsCount)
-        : OpenCVBaseNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
+    : OpenCVBaseNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
     {
-        m_LastProcessTime = 0.0;
+        m_pTexture = nullptr;
+
+        m_pFilter = nullptr;
 
         m_Running = true;
         m_AutoRun = true;
@@ -120,15 +145,20 @@ public:
         m_OldImageSize = cv::Size(0,0);
     }
 
-    void Init(int maxStages, std::string* stageNames)
+    void Init(OpenCVBaseFilter* pFilter, int maxStages, std::string* stageNames)
     {
         m_MaxStages = maxStages;
         m_StagesToRun = maxStages;
         m_StageNames = stageNames;
+        m_pFilter = pFilter;
     }
 
     virtual bool HandleInput(int keyAction, int keyCode, int mouseAction, int id, float x, float y, float pressure)
     {
+        // Hack, make tilde key the same as 0.
+        if( keyCode == 192 )
+            keyCode = '0';
+
         if( keyAction == GCBA_Down && keyCode >= '0' && keyCode <= '1'+m_MaxStages )
         {
             m_StagesToRun = keyCode - '0';
@@ -152,6 +182,10 @@ public:
             changed = true;
         }
 
+        ImGui::Checkbox( "AutoRun", &m_AutoRun );
+        ImGui::SameLine();
+        if( ImGui::Button( "Reset" ) ) { m_NeedsReset = true; m_Running = true; QuickRun( false ); }
+
         if( m_Running )
         {
             ImGui::Text( "Status: Running: %d", m_NumIterations );
@@ -169,11 +203,13 @@ public:
         {
             QuickRun( false );
         }
-        else if( m_Running && m_AutoRun )
+        else if( m_Image.empty() == false && m_Running && m_AutoRun )
         {
             m_NumIterations++;
             QuickRun( false );
         }
+
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -205,7 +241,7 @@ public:
                     m_PastIterations = 0;
                     m_NumIterations = 1;
                     m_OldImageSize = pImage->size();
-                    Reset();
+                    Reset( pImage );
                 }
 
                 if( m_PastIterations < m_NumIterations )
@@ -232,9 +268,21 @@ public:
     }
 
     virtual bool InnerDrawContents() = 0;
-    virtual void Reset() = 0;
-    virtual bool Step() = 0;
-    virtual void Output(int stages) = 0;
+    
+    virtual void Reset(cv::Mat* pImage)
+    {
+        m_pFilter->Reset( pImage, m_StagesToRun );
+    }
+
+    virtual bool Step()
+    {
+        return m_pFilter->Step();
+    }
+
+    virtual void Output(int stages)
+    {
+        m_pFilter->Output( stages );
+    }
 };
 
 #endif //__OpenCVNodes_Base_H__
