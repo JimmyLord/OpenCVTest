@@ -118,6 +118,7 @@ protected:
     int m_MaxStages;
     int m_StagesToRun;
     std::string* m_StageNames;
+    bool m_ResetOnStageChange;
 
     bool m_NeedsReset;
     int m_NumIterations;
@@ -138,6 +139,7 @@ public:
         m_MaxStages = 0;
         m_StagesToRun = m_MaxStages;
         m_StageNames = nullptr;
+        m_ResetOnStageChange = false;
 
         m_NeedsReset = true;
         m_NumIterations = 1;
@@ -145,12 +147,14 @@ public:
         m_OldImageSize = cv::Size(0,0);
     }
 
-    void Init(OpenCVBaseFilter* pFilter, int maxStages, std::string* stageNames)
+    void Init(OpenCVBaseFilter* pFilter, int maxStages, std::string* stageNames, bool resetOnStageChange)
     {
+        m_pFilter = pFilter;
+
         m_MaxStages = maxStages;
         m_StagesToRun = maxStages;
         m_StageNames = stageNames;
-        m_pFilter = pFilter;
+        m_ResetOnStageChange = resetOnStageChange;
     }
 
     virtual bool HandleInput(int keyAction, int keyCode, int mouseAction, int id, float x, float y, float pressure)
@@ -162,6 +166,9 @@ public:
         if( keyAction == GCBA_Down && keyCode >= '0' && keyCode <= '1'+m_MaxStages )
         {
             m_StagesToRun = keyCode - '0';
+            if( m_ResetOnStageChange )
+                m_NeedsReset = true;
+
             QuickRun( true );
             return true;
         }
@@ -173,7 +180,12 @@ public:
     {
         bool changed = false;
 
-        if( ImGui::SliderInt( "Stage:", &m_StagesToRun, 0, m_MaxStages-1 ) ) { changed = true; }
+        if( ImGui::SliderInt( "Stage:", &m_StagesToRun, 0, m_MaxStages-1 ) )
+        {
+            changed = true;
+            if( m_ResetOnStageChange )
+                m_NeedsReset = true;
+        }
         ImGui::SameLine();
         ImGui::Text( "%s", m_StageNames[m_StagesToRun].c_str() );
 

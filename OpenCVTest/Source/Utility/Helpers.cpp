@@ -209,7 +209,7 @@ TextureDefinition* CreateOrUpdateTextureDefinitionFromOpenCVMat(cv::Mat* pImage,
 
 void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, float size, float pixelsToShow)
 {
-    if( pTexture != nullptr )
+    if( pTexture != nullptr && pImage->empty() == false )
     {
         float aspect = (float)pImage->rows / pImage->cols;
         uint32 pow2cols = NextPowerOfTwo( pImage->cols );
