@@ -28,6 +28,8 @@ class OpenCVNode_Filter_Morphological;
 //====================================================================================================
 // OpenCVNode_File_Input
 //====================================================================================================
+static const char* m_OpenCVNode_File_Input_InputLabels[] = { "None" };
+static const char* m_OpenCVNode_File_Input_OutputLabels[] = { "Image Output" };
 
 class OpenCVNode_File_Input : public OpenCVBaseNode
 {
@@ -43,6 +45,9 @@ public:
         m_Filename = "Data/test.png";
         m_pTexture = nullptr;
         //VSNAddVar( &m_VariablesList, "Float", ComponentVariableType_Float, MyOffsetOf( this, &this->m_Float ), true, true, "", nullptr, nullptr, nullptr );
+
+        m_InputTooltips  = m_OpenCVNode_File_Input_InputLabels;
+        m_OutputTooltips = m_OpenCVNode_File_Input_OutputLabels;
     }
 
     ~OpenCVNode_File_Input()
@@ -146,6 +151,8 @@ public:
 //====================================================================================================
 // OpenCVNode_File_Output
 //====================================================================================================
+static const char* m_OpenCVNode_File_Output_InputLabels[] = { "Image Input" };
+static const char* m_OpenCVNode_File_Output_OutputLabels[] = { "None" };
 
 class OpenCVNode_File_Output : public OpenCVBaseNode
 {
@@ -158,6 +165,9 @@ public:
     {
         m_Filename = "Output/test.png";
         //VSNAddVar( &m_VariablesList, "Float", ComponentVariableType_Float, MyOffsetOf( this, &this->m_Float ), true, true, "", nullptr, nullptr, nullptr );
+
+        m_InputTooltips  = m_OpenCVNode_File_Output_InputLabels;
+        m_OutputTooltips = m_OpenCVNode_File_Output_OutputLabels;
     }
 
     ~OpenCVNode_File_Output()
@@ -261,6 +271,8 @@ public:
 //====================================================================================================
 // OpenCVNode_Convert_Grayscale
 //====================================================================================================
+static const char* m_OpenCVNode_Convert_Grayscale_InputLabels[] = { "Image Input" };
+static const char* m_OpenCVNode_Convert_Grayscale_OutputLabels[] = { "Image Output" };
 
 class OpenCVNode_Convert_Grayscale : public OpenCVBaseNode
 {
@@ -274,6 +286,9 @@ public:
     {
         m_pTexture = nullptr;
         //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
+
+        m_InputTooltips  = m_OpenCVNode_Convert_Grayscale_InputLabels;
+        m_OutputTooltips = m_OpenCVNode_Convert_Grayscale_OutputLabels;
     }
 
     ~OpenCVNode_Convert_Grayscale()
@@ -328,6 +343,8 @@ public:
 //====================================================================================================
 // OpenCVNode_Convert_Crop
 //====================================================================================================
+static const char* m_OpenCVNode_Convert_Crop_InputLabels[] = { "Image Input" };
+static const char* m_OpenCVNode_Convert_Crop_OutputLabels[] = { "Cropped Output" };
 
 class OpenCVNode_Convert_Crop : public OpenCVBaseNode
 {
@@ -345,6 +362,9 @@ public:
         m_TopLeft.Set( 0, 0 );
         m_Size.Set( 32, 32 );
         //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
+
+        m_InputTooltips  = m_OpenCVNode_Convert_Crop_InputLabels;
+        m_OutputTooltips = m_OpenCVNode_Convert_Crop_OutputLabels;
     }
 
     ~OpenCVNode_Convert_Crop()
@@ -454,6 +474,8 @@ public:
 //====================================================================================================
 // OpenCVNode_Filter_Threshold
 //====================================================================================================
+static const char* m_OpenCVNode_Filter_Threshold_InputLabels[] = { "Image Input" };
+static const char* m_OpenCVNode_Filter_Threshold_OutputLabels[] = { "Image Output" };
 
 class OpenCVNode_Filter_Threshold : public OpenCVBaseNode
 {
@@ -484,6 +506,9 @@ public:
         m_ThresholdValue = 0;
         m_ThresholdType = 0;
         //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
+
+        m_InputTooltips  = m_OpenCVNode_Filter_Threshold_InputLabels;
+        m_OutputTooltips = m_OpenCVNode_Filter_Threshold_OutputLabels;
     }
 
     ~OpenCVNode_Filter_Threshold()
@@ -591,6 +616,8 @@ public:
 //====================================================================================================
 // OpenCVNode_Filter_Bilateral
 //====================================================================================================
+static const char* m_OpenCVNode_Filter_Bilateral_InputLabels[] = { "Image Input" };
+static const char* m_OpenCVNode_Filter_Bilateral_OutputLabels[] = { "Image Output" };
 
 class OpenCVNode_Filter_Bilateral : public OpenCVBaseNode
 {
@@ -611,6 +638,9 @@ public:
         m_SigmaColor = 150.0f;
         m_SigmaSpace = 150.0f;
         //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
+
+        m_InputTooltips  = m_OpenCVNode_Filter_Bilateral_InputLabels;
+        m_OutputTooltips = m_OpenCVNode_Filter_Bilateral_OutputLabels;
     }
 
     ~OpenCVNode_Filter_Bilateral()
@@ -701,6 +731,8 @@ public:
 //====================================================================================================
 // OpenCVNode_Filter_Morphological
 //====================================================================================================
+static const char* m_OpenCVNode_Filter_Morphological_InputLabels[] = { "Image Input" };
+static const char* m_OpenCVNode_Filter_Morphological_OutputLabels[] = { "Image Output" };
 
 class OpenCVNode_Filter_Morphological : public OpenCVBaseNode
 {
@@ -778,6 +810,9 @@ public:
         m_MorphType = MorphType::Erode;
         m_MorphKernel = MorphKernel::Rect;
         //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
+
+        m_InputTooltips  = m_OpenCVNode_Filter_Morphological_InputLabels;
+        m_OutputTooltips = m_OpenCVNode_Filter_Morphological_OutputLabels;
     }
 
     ~OpenCVNode_Filter_Morphological()
