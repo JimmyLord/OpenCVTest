@@ -163,7 +163,7 @@ public:
         if( keyCode == 192 )
             keyCode = '0';
 
-        if( keyAction == GCBA_Down && keyCode >= '0' && keyCode <= '1'+m_MaxStages )
+        if( keyAction == GCBA_Down && keyCode >= '0' && keyCode < '0'+m_MaxStages )
         {
             m_StagesToRun = keyCode - '0';
             if( m_ResetOnStageChange )
