@@ -48,11 +48,13 @@ public:
             ImGui::Text( "%s", m_Name );
     }
 
-    virtual void DrawContents() override
+    virtual bool DrawContents() override
     {
-        OpenCVBaseNode::DrawContents();
+        bool modified = OpenCVBaseNode::DrawContents();
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+
+        return modified;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override

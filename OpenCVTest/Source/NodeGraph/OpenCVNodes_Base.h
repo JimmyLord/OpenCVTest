@@ -176,7 +176,7 @@ public:
         return false;
     }
 
-    virtual void DrawContents() override
+    virtual bool DrawContents() override
     {
         bool changed = false;
 

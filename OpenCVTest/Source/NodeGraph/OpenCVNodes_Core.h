@@ -95,9 +95,9 @@ public:
         }
     }
 
-    virtual void DrawContents() override
+    virtual bool DrawContents() override
     {
-        OpenCVBaseNode::DrawContents();
+        bool modified = OpenCVBaseNode::DrawContents();
 
         if( ImGui::Button( "Choose File..." ) )
         {
@@ -114,6 +114,8 @@ public:
         ImGui::Text( "Size: %dx%d", m_Image.cols, m_Image.rows );
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+
+        return modified;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -185,9 +187,9 @@ public:
             ImGui::Text( "%s: %s", m_Name, m_Filename.c_str() );
     }
 
-    virtual void DrawContents() override
+    virtual bool DrawContents() override
     {
-        OpenCVBaseNode::DrawContents();
+        bool modified = OpenCVBaseNode::DrawContents();
 
         if( ImGui::Button( "Choose File..." ) )
         {
@@ -210,6 +212,8 @@ public:
         {
             Save();
         }
+
+        return modified;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -310,11 +314,13 @@ public:
         }
     }
 
-    virtual void DrawContents() override
+    virtual bool DrawContents() override
     {
-        OpenCVBaseNode::DrawContents();
+        bool modified = OpenCVBaseNode::DrawContents();
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+
+        return modified;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -386,9 +392,9 @@ public:
         }
     }
 
-    virtual void DrawContents() override
+    virtual bool DrawContents() override
     {
-        OpenCVBaseNode::DrawContents();
+        bool modified = OpenCVBaseNode::DrawContents();
 
         // Get Image from input node.
         cv::Mat* pImage = GetInputImage( 0 );
@@ -414,6 +420,8 @@ public:
         {
             ImGui::Text( "No input image." );
         }
+
+        return modified;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -530,9 +538,9 @@ public:
         }
     }
 
-    virtual void DrawContents() override
+    virtual bool DrawContents() override
     {
-        OpenCVBaseNode::DrawContents();
+        bool modified = OpenCVBaseNode::DrawContents();
 
         if( ImGui::DragFloat( "Value", &m_ThresholdValue, 1.0f, 0.0f, 255.0f ) )             { QuickRun( false ); }
         //if( ImGui::ListBox( "Type", &m_ThresholdType, ThresholdTypeNames, ThresholdTypeMax ) ) { QuickRun(); }
@@ -557,6 +565,8 @@ public:
         }
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+
+        return modified;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -662,9 +672,9 @@ public:
         }
     }
 
-    virtual void DrawContents() override
+    virtual bool DrawContents() override
     {
-        OpenCVBaseNode::DrawContents();
+        bool modified = OpenCVBaseNode::DrawContents();
 
         if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun( false ); }
         if( ImGui::DragFloat( "Sigma Color", &m_SigmaColor, 1.0f, 0.0f, 255.0f ) ) { QuickRun( false ); }
@@ -672,6 +682,8 @@ public:
         ImGui::Text( "Runtime: %f", m_LastProcessTime );
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+
+        return modified;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -809,7 +821,8 @@ public:
         m_WindowSize = 3;
         m_MorphType = MorphType::Erode;
         m_MorphKernel = MorphKernel::Rect;
-        //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
+        
+        VSNAddVar( &m_VariablesList, "m_WindowSize", ComponentVariableType_Int, MyOffsetOf( this, &this->m_WindowSize ), true, true, "Window Size", nullptr, nullptr, nullptr );
 
         m_InputTooltips  = m_OpenCVNode_Filter_Morphological_InputLabels;
         m_OutputTooltips = m_OpenCVNode_Filter_Morphological_OutputLabels;
@@ -834,11 +847,16 @@ public:
         }
     }
 
-    virtual void DrawContents() override
+    virtual bool DrawContents() override
     {
-        OpenCVBaseNode::DrawContents();
+        bool modified = false;
 
-        if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun( false ); }
+        if( OpenCVBaseNode::DrawContents() )
+        {
+            QuickRun( false );
+        }
+
+        //if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun( false ); }
 
         if( ImGui::BeginCombo( "Type", MorphTypeNames[(int)m_MorphType].c_str() ) )
         {
@@ -881,6 +899,8 @@ public:
         ImGui::Text( "Runtime: %f", m_LastProcessTime );
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+
+        return modified;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -915,7 +935,7 @@ public:
     virtual cJSON* ExportAsJSONObject() override
     {
         cJSON* jNode = OpenCVBaseNode::ExportAsJSONObject();
-        cJSON_AddNumberToObject( jNode, "m_WindowSize", m_WindowSize );
+        //cJSON_AddNumberToObject( jNode, "m_WindowSize", m_WindowSize );
         cJSON_AddNumberToObject( jNode, "m_MorphType", (int)m_MorphType );
         cJSON_AddNumberToObject( jNode, "m_MorphKernel", (int)m_MorphKernel );
         return jNode;
@@ -924,7 +944,7 @@ public:
     virtual void ImportFromJSONObject(cJSON* jNode) override
     {
         MyNode::ImportFromJSONObject( jNode );
-        cJSONExt_GetInt( jNode, "m_WindowSize", &m_WindowSize );
+        //cJSONExt_GetInt( jNode, "m_WindowSize", &m_WindowSize );
         cJSONExt_GetInt( jNode, "m_MorphType", (int*)&m_MorphType );
         cJSONExt_GetInt( jNode, "m_MorphKernel", (int*)&m_MorphKernel );
     }
