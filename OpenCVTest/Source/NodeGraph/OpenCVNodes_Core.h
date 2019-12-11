@@ -357,6 +357,7 @@ class OpenCVNode_Convert_Crop : public OpenCVBaseNode
 protected:
     cv::Mat m_Image;
     TextureDefinition* m_pTexture;
+    bool m_Maximize;
     ivec2 m_TopLeft;
     ivec2 m_Size;
 
@@ -367,7 +368,12 @@ public:
         m_pTexture = nullptr;
         m_TopLeft.Set( 0, 0 );
         m_Size.Set( 32, 32 );
-        //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
+
+        VSNAddVar( &m_VariablesList, "m_Maximize", ComponentVariableType_Bool, MyOffsetOf( this, &this->m_Maximize ),   true, true, "Maximize", nullptr, nullptr, nullptr );
+        VSNAddVar( &m_VariablesList, "Top",        ComponentVariableType_Int,  MyOffsetOf( this, &this->m_TopLeft.y ), false, true, "",         nullptr, nullptr, nullptr );
+        VSNAddVar( &m_VariablesList, "Left",       ComponentVariableType_Int,  MyOffsetOf( this, &this->m_TopLeft.x ), false, true, "",         nullptr, nullptr, nullptr );
+        VSNAddVar( &m_VariablesList, "Width",      ComponentVariableType_Int,  MyOffsetOf( this, &this->m_Size.x ),    false, true, "",         nullptr, nullptr, nullptr );
+        VSNAddVar( &m_VariablesList, "Height",     ComponentVariableType_Int,  MyOffsetOf( this, &this->m_Size.y ),    false, true, "",         nullptr, nullptr, nullptr );
 
         m_InputTooltips  = m_OpenCVNode_Convert_Crop_InputLabels;
         m_OutputTooltips = m_OpenCVNode_Convert_Crop_OutputLabels;
@@ -394,22 +400,29 @@ public:
 
     virtual bool DrawContents() override
     {
-        bool modified = OpenCVBaseNode::DrawContents();
+        bool modified = false;
 
         // Get Image from input node.
         cv::Mat* pImage = GetInputImage( 0 );
 
         if( pImage )
         {
-            bool valuesChanged = false;
+            GetVariableByLabel( "Top"    )->SetEditorLimits( 0, (float)pImage->rows - m_Size.y );
+            GetVariableByLabel( "Left"   )->SetEditorLimits( 0, (float)pImage->cols - m_Size.x );
+            GetVariableByLabel( "Width"  )->SetEditorLimits( 1, (float)pImage->cols );
+            GetVariableByLabel( "Height" )->SetEditorLimits( 1, (float)pImage->rows );
 
-            if( ImGui::DragInt( "Top",    &m_TopLeft.y, 1.0f, 0, pImage->rows - m_Size.y ) ) { valuesChanged = true; }
-            if( ImGui::DragInt( "Left",   &m_TopLeft.x, 1.0f, 0, pImage->cols - m_Size.x ) ) { valuesChanged = true; }
-            if( ImGui::DragInt( "Width",  &m_Size.x,    1.0f, 1, pImage->cols ) ) { valuesChanged = true; }
-            if( ImGui::DragInt( "Height", &m_Size.y,    1.0f, 1, pImage->rows ) ) { valuesChanged = true; }
+            modified = OpenCVBaseNode::DrawContents();
 
-            if( valuesChanged )
+            if( modified )
             {
+                if( m_Maximize )
+                {
+                    m_TopLeft.Set( 0, 0 );
+                    m_Size.x = pImage->cols;
+                    m_Size.y = pImage->rows;
+                }
+
                 Validate( pImage );
                 QuickRun( true );
             }
