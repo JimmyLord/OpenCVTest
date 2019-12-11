@@ -761,7 +761,7 @@ public:
         NumTypes,
     };
 
-    inline static std::string MorphTypeNames[(int)MorphType::NumTypes]
+    inline static const char* MorphTypeNames[(int)MorphType::NumTypes]
     {
         "Erode",
         "Dilate",
@@ -823,6 +823,7 @@ public:
         m_MorphKernel = MorphKernel::Rect;
         
         VSNAddVar( &m_VariablesList, "m_WindowSize", ComponentVariableType_Int, MyOffsetOf( this, &this->m_WindowSize ), true, true, "Window Size", nullptr, nullptr, nullptr );
+        VSNAddVarEnum( &m_VariablesList, "m_MorphType", MyOffsetOf( this, &this->m_MorphType ), true, true, "Morph Type", (int)MorphType::NumTypes, MorphTypeNames, nullptr, nullptr, nullptr );
 
         m_InputTooltips  = m_OpenCVNode_Filter_Morphological_InputLabels;
         m_OutputTooltips = m_OpenCVNode_Filter_Morphological_OutputLabels;
@@ -858,24 +859,24 @@ public:
 
         //if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun( false ); }
 
-        if( ImGui::BeginCombo( "Type", MorphTypeNames[(int)m_MorphType].c_str() ) )
-        {
-            for( int n = 0; n < (int)MorphType::NumTypes; n++ )
-            {
-                bool is_selected = (n == (int)m_MorphType);
-                if( ImGui::Selectable( MorphTypeNames[n].c_str(), is_selected ) )
-                {
-                    m_MorphType = (MorphType)n;
-                    QuickRun( false );
-                }
-                if( is_selected )
-                {
-                    // Set the initial focus when opening the combo (scrolling + for keyboard navigation support in the upcoming navigation branch)
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-            ImGui::EndCombo();
-        }
+        //if( ImGui::BeginCombo( "Type", MorphTypeNames[(int)m_MorphType] ) )
+        //{
+        //    for( int n = 0; n < (int)MorphType::NumTypes; n++ )
+        //    {
+        //        bool is_selected = (n == (int)m_MorphType);
+        //        if( ImGui::Selectable( MorphTypeNames[n], is_selected ) )
+        //        {
+        //            m_MorphType = (MorphType)n;
+        //            QuickRun( false );
+        //        }
+        //        if( is_selected )
+        //        {
+        //            // Set the initial focus when opening the combo (scrolling + for keyboard navigation support in the upcoming navigation branch)
+        //            ImGui::SetItemDefaultFocus();
+        //        }
+        //    }
+        //    ImGui::EndCombo();
+        //}
 
         if( ImGui::BeginCombo( "Kernel Shape", MorphKernelNames[(int)m_MorphKernel].c_str() ) )
         {
