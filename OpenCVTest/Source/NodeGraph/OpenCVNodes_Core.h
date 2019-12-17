@@ -97,7 +97,7 @@ public:
 
     virtual bool DrawContents() override
     {
-        bool modified = OpenCVBaseNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         if( ImGui::Button( "Choose File..." ) )
         {
@@ -115,7 +115,7 @@ public:
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
-        return modified;
+        return false;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -189,7 +189,7 @@ public:
 
     virtual bool DrawContents() override
     {
-        bool modified = OpenCVBaseNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         if( ImGui::Button( "Choose File..." ) )
         {
@@ -213,7 +213,7 @@ public:
             Save();
         }
 
-        return modified;
+        return false;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -229,9 +229,26 @@ public:
         OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, 0 ) );
         if( pNode == nullptr )
             return;
-        cv::Mat* pImage = pNode->GetValueMat();
-        if( pImage->empty() == true )
+        cv::Mat outputImage = *pNode->GetValueMat();
+        if( outputImage.empty() == true )
             return;
+
+        cv::Mat temp;
+        int type = outputImage.type();
+        if( type == CV_32F )
+        {
+            double min;
+            double max;
+            cv::minMaxLoc( outputImage, &min, &max );
+            float scale = 255.0f / (float)(max - min);
+            outputImage.convertTo( temp, CV_8UC1, scale );
+            cv::cvtColor( temp, temp, cv::COLOR_GRAY2RGB );
+            //applyColorMap( temp, temp, cv::COLORMAP_JET );
+        }
+        else
+        {
+            temp = outputImage;
+        }
 
         std::string tempFilename = m_Filename;
 
@@ -251,7 +268,7 @@ public:
         }
 
         // Write the file to disk.
-        cv::imwrite( tempFilename.c_str(), *pImage );
+        cv::imwrite( tempFilename.c_str(), temp );
     }
 
     virtual cJSON* ExportAsJSONObject() override
@@ -316,11 +333,11 @@ public:
 
     virtual bool DrawContents() override
     {
-        bool modified = OpenCVBaseNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
-        return modified;
+        return false;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -357,7 +374,6 @@ class OpenCVNode_Convert_Crop : public OpenCVBaseNode
 protected:
     cv::Mat m_Image;
     TextureDefinition* m_pTexture;
-    bool m_Maximize;
     ivec2 m_TopLeft;
     ivec2 m_Size;
 
@@ -368,12 +384,7 @@ public:
         m_pTexture = nullptr;
         m_TopLeft.Set( 0, 0 );
         m_Size.Set( 32, 32 );
-
-        VSNAddVar( &m_VariablesList, "m_Maximize", ComponentVariableType_Bool, MyOffsetOf( this, &this->m_Maximize ),   true, true, "Maximize", nullptr, nullptr, nullptr );
-        VSNAddVar( &m_VariablesList, "Top",        ComponentVariableType_Int,  MyOffsetOf( this, &this->m_TopLeft.y ), false, true, "",         nullptr, nullptr, nullptr );
-        VSNAddVar( &m_VariablesList, "Left",       ComponentVariableType_Int,  MyOffsetOf( this, &this->m_TopLeft.x ), false, true, "",         nullptr, nullptr, nullptr );
-        VSNAddVar( &m_VariablesList, "Width",      ComponentVariableType_Int,  MyOffsetOf( this, &this->m_Size.x ),    false, true, "",         nullptr, nullptr, nullptr );
-        VSNAddVar( &m_VariablesList, "Height",     ComponentVariableType_Int,  MyOffsetOf( this, &this->m_Size.y ),    false, true, "",         nullptr, nullptr, nullptr );
+        //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
 
         m_InputTooltips  = m_OpenCVNode_Convert_Crop_InputLabels;
         m_OutputTooltips = m_OpenCVNode_Convert_Crop_OutputLabels;
@@ -400,29 +411,22 @@ public:
 
     virtual bool DrawContents() override
     {
-        bool modified = false;
+        OpenCVBaseNode::DrawContents();
 
         // Get Image from input node.
         cv::Mat* pImage = GetInputImage( 0 );
 
         if( pImage )
         {
-            GetVariableByLabel( "Top"    )->SetEditorLimits( 0, (float)pImage->rows - m_Size.y );
-            GetVariableByLabel( "Left"   )->SetEditorLimits( 0, (float)pImage->cols - m_Size.x );
-            GetVariableByLabel( "Width"  )->SetEditorLimits( 1, (float)pImage->cols );
-            GetVariableByLabel( "Height" )->SetEditorLimits( 1, (float)pImage->rows );
+            bool valuesChanged = false;
 
-            modified = OpenCVBaseNode::DrawContents();
+            if( ImGui::DragInt( "Top",    &m_TopLeft.y, 1.0f, 0, pImage->rows - m_Size.y ) ) { valuesChanged = true; }
+            if( ImGui::DragInt( "Left",   &m_TopLeft.x, 1.0f, 0, pImage->cols - m_Size.x ) ) { valuesChanged = true; }
+            if( ImGui::DragInt( "Width",  &m_Size.x,    1.0f, 1, pImage->cols ) ) { valuesChanged = true; }
+            if( ImGui::DragInt( "Height", &m_Size.y,    1.0f, 1, pImage->rows ) ) { valuesChanged = true; }
 
-            if( modified )
+            if( valuesChanged )
             {
-                if( m_Maximize )
-                {
-                    m_TopLeft.Set( 0, 0 );
-                    m_Size.x = pImage->cols;
-                    m_Size.y = pImage->rows;
-                }
-
                 Validate( pImage );
                 QuickRun( true );
             }
@@ -434,7 +438,7 @@ public:
             ImGui::Text( "No input image." );
         }
 
-        return modified;
+        return false;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -553,7 +557,7 @@ public:
 
     virtual bool DrawContents() override
     {
-        bool modified = OpenCVBaseNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         if( ImGui::DragFloat( "Value", &m_ThresholdValue, 1.0f, 0.0f, 255.0f ) )             { QuickRun( false ); }
         //if( ImGui::ListBox( "Type", &m_ThresholdType, ThresholdTypeNames, ThresholdTypeMax ) ) { QuickRun(); }
@@ -579,7 +583,7 @@ public:
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
-        return modified;
+        return false;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -687,7 +691,7 @@ public:
 
     virtual bool DrawContents() override
     {
-        bool modified = OpenCVBaseNode::DrawContents();
+        OpenCVBaseNode::DrawContents();
 
         if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun( false ); }
         if( ImGui::DragFloat( "Sigma Color", &m_SigmaColor, 1.0f, 0.0f, 255.0f ) ) { QuickRun( false ); }
@@ -696,7 +700,7 @@ public:
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
-        return modified;
+        return false;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -774,7 +778,7 @@ public:
         NumTypes,
     };
 
-    inline static const char* MorphTypeNames[(int)MorphType::NumTypes]
+    inline static std::string MorphTypeNames[(int)MorphType::NumTypes]
     {
         "Erode",
         "Dilate",
@@ -834,9 +838,7 @@ public:
         m_WindowSize = 3;
         m_MorphType = MorphType::Erode;
         m_MorphKernel = MorphKernel::Rect;
-        
-        VSNAddVar( &m_VariablesList, "m_WindowSize", ComponentVariableType_Int, MyOffsetOf( this, &this->m_WindowSize ), true, true, "Window Size", nullptr, nullptr, nullptr );
-        VSNAddVarEnum( &m_VariablesList, "m_MorphType", MyOffsetOf( this, &this->m_MorphType ), true, true, "Morph Type", (int)MorphType::NumTypes, MorphTypeNames, nullptr, nullptr, nullptr );
+        //VSNAddVar( &m_VariablesList, "Color", ComponentVariableType_ColorByte, MyOffsetOf( this, &this->m_Color ), true, true, "", nullptr, nullptr, nullptr );
 
         m_InputTooltips  = m_OpenCVNode_Filter_Morphological_InputLabels;
         m_OutputTooltips = m_OpenCVNode_Filter_Morphological_OutputLabels;
@@ -863,33 +865,28 @@ public:
 
     virtual bool DrawContents() override
     {
-        bool modified = false;
+        OpenCVBaseNode::DrawContents();
 
-        if( OpenCVBaseNode::DrawContents() )
+        if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun( false ); }
+
+        if( ImGui::BeginCombo( "Type", MorphTypeNames[(int)m_MorphType].c_str() ) )
         {
-            QuickRun( false );
+            for( int n = 0; n < (int)MorphType::NumTypes; n++ )
+            {
+                bool is_selected = (n == (int)m_MorphType);
+                if( ImGui::Selectable( MorphTypeNames[n].c_str(), is_selected ) )
+                {
+                    m_MorphType = (MorphType)n;
+                    QuickRun( false );
+                }
+                if( is_selected )
+                {
+                    // Set the initial focus when opening the combo (scrolling + for keyboard navigation support in the upcoming navigation branch)
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
         }
-
-        //if( ImGui::DragInt( "Window Size", &m_WindowSize, 1.0f, 1, 30 ) )          { QuickRun( false ); }
-
-        //if( ImGui::BeginCombo( "Type", MorphTypeNames[(int)m_MorphType] ) )
-        //{
-        //    for( int n = 0; n < (int)MorphType::NumTypes; n++ )
-        //    {
-        //        bool is_selected = (n == (int)m_MorphType);
-        //        if( ImGui::Selectable( MorphTypeNames[n], is_selected ) )
-        //        {
-        //            m_MorphType = (MorphType)n;
-        //            QuickRun( false );
-        //        }
-        //        if( is_selected )
-        //        {
-        //            // Set the initial focus when opening the combo (scrolling + for keyboard navigation support in the upcoming navigation branch)
-        //            ImGui::SetItemDefaultFocus();
-        //        }
-        //    }
-        //    ImGui::EndCombo();
-        //}
 
         if( ImGui::BeginCombo( "Kernel Shape", MorphKernelNames[(int)m_MorphKernel].c_str() ) )
         {
@@ -914,7 +911,7 @@ public:
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
-        return modified;
+        return false;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
@@ -949,7 +946,7 @@ public:
     virtual cJSON* ExportAsJSONObject() override
     {
         cJSON* jNode = OpenCVBaseNode::ExportAsJSONObject();
-        //cJSON_AddNumberToObject( jNode, "m_WindowSize", m_WindowSize );
+        cJSON_AddNumberToObject( jNode, "m_WindowSize", m_WindowSize );
         cJSON_AddNumberToObject( jNode, "m_MorphType", (int)m_MorphType );
         cJSON_AddNumberToObject( jNode, "m_MorphKernel", (int)m_MorphKernel );
         return jNode;
@@ -958,7 +955,7 @@ public:
     virtual void ImportFromJSONObject(cJSON* jNode) override
     {
         MyNode::ImportFromJSONObject( jNode );
-        //cJSONExt_GetInt( jNode, "m_WindowSize", &m_WindowSize );
+        cJSONExt_GetInt( jNode, "m_WindowSize", &m_WindowSize );
         cJSONExt_GetInt( jNode, "m_MorphType", (int*)&m_MorphType );
         cJSONExt_GetInt( jNode, "m_MorphKernel", (int*)&m_MorphKernel );
     }
