@@ -49,7 +49,9 @@ workspace "OpenCVTest"
 
 ----------------------------------------------- All Projects ------------------------------------------------
 PremakeConfig_UseMemoryTracker = false
+PremakeConfig_UseLua = true
 PremakeConfig_UseMono = false
+PremakeConfig_UseBullet = true
 
 ------------------------------------------------ MyFramework ------------------------------------------------
 MyFrameworkPremakeConfig_ForceIncludeEditorFiles = true
