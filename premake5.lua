@@ -49,7 +49,7 @@ workspace "OpenCVTest"
 
 ----------------------------------------------- All Projects ------------------------------------------------
 PremakeConfig_UseMemoryTracker = false
-PremakeConfig_UseLua = true
+PremakeConfig_UseLua = false              -- Also: defines "MYFW_USE_LUA=0" in project below.
 PremakeConfig_UseMono = false
 PremakeConfig_UseBullet = true
 
@@ -156,3 +156,6 @@ end
         }
 
         linkoptions { "/DELAYLOAD:pthreadVC2.dll" }
+
+    filter {}
+        defines "MYFW_USE_LUA=0"
