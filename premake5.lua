@@ -49,9 +49,9 @@ workspace "OpenCVTest"
 
 ----------------------------------------------- All Projects ------------------------------------------------
 PremakeConfig_UseMemoryTracker = false
-PremakeConfig_UseLua = false              -- Also: defines "MYFW_USE_LUA=0" in project below.
+PremakeConfig_UseLua = false              -- Also: added 'defines "MYFW_USE_LUA=0"' in project below.
 PremakeConfig_UseMono = false
-PremakeConfig_UseBullet = true
+PremakeConfig_UseBullet = false           -- Also: added 'defines "MYFW_USE_BULLET=0"' in project below.
 
 ------------------------------------------------ MyFramework ------------------------------------------------
 MyFrameworkPremakeConfig_ForceIncludeEditorFiles = true
@@ -69,7 +69,7 @@ SharedGameCodePremakeConfig_SharedGameCodeFolder = "$(SolutionDir)../Libraries/S
 BuildSingleProjectPremake( "Libraries/Engine/Libraries/SharedGameCode/", "premake5inc.lua" )
 
 group "Physics"
-    BuildSingleProjectPremake( "Libraries/Engine/Libraries/", "premake5inc-bullet.lua" )
+    --BuildSingleProjectPremake( "Libraries/Engine/Libraries/", "premake5inc-bullet.lua" )
     BuildSingleProjectPremake( "Libraries/Framework/Libraries/", "premake5inc-box2d.lua" )
 group ""
 
@@ -121,10 +121,17 @@ project "OpenCVTest"
         "MyEngine",
         "SharedGameCode",
         "Box2D",
-        "BulletCollision",
-        "BulletDynamics",
-        "LinearMath",
+        --"BulletCollision",
+        --"BulletDynamics",
+        --"LinearMath",
     }
+
+    if PremakeConfig_UseLua == false then
+        defines "MYFW_USE_LUA=0"
+    end
+    if PremakeConfig_UseBullet == false then
+        defines "MYFW_USE_BULLET=0"
+    end
 
     filter "configurations:Release"
         defines         "NDEBUG"
@@ -156,6 +163,3 @@ end
         }
 
         linkoptions { "/DELAYLOAD:pthreadVC2.dll" }
-
-    filter {}
-        defines "MYFW_USE_LUA=0"
