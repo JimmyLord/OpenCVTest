@@ -51,6 +51,7 @@ workspace "OpenCVTest"
 PremakeConfig_UseMemoryTracker = false
 PremakeConfig_UseLua = false              -- Also: added 'defines "MYFW_USE_LUA=0"' in project below.
 PremakeConfig_UseMono = false
+PremakeConfig_UseBox2D = false            -- Also: added 'defines "MYFW_USE_BOX2D=0"' in project below.
 PremakeConfig_UseBullet = false           -- Also: added 'defines "MYFW_USE_BULLET=0"' in project below.
 
 ------------------------------------------------ MyFramework ------------------------------------------------
@@ -70,7 +71,7 @@ BuildSingleProjectPremake( "Libraries/Engine/Libraries/SharedGameCode/", "premak
 
 group "Physics"
     --BuildSingleProjectPremake( "Libraries/Engine/Libraries/", "premake5inc-bullet.lua" )
-    BuildSingleProjectPremake( "Libraries/Framework/Libraries/", "premake5inc-box2d.lua" )
+    --BuildSingleProjectPremake( "Libraries/Framework/Libraries/", "premake5inc-box2d.lua" )
 group ""
 
 --------------------------------------------- OpenCVTest Project --------------------------------------------
@@ -88,8 +89,8 @@ project "OpenCVTest"
     includedirs {
         "OpenCVTest/Source",
         "$(SolutionDir)../",
-        "$(SolutionDir)../Libraries/Framework/Libraries/b2Settings",
-        "$(SolutionDir)../Libraries/Framework/Libraries/Box2D",
+        --"$(SolutionDir)../Libraries/Framework/Libraries/b2Settings",
+        --"$(SolutionDir)../Libraries/Framework/Libraries/Box2D",
         "Libraries/OpenCV/include",
         --monoInstallationPath .. "/include/mono-2.0",
     }
@@ -120,7 +121,7 @@ project "OpenCVTest"
         "MyFramework",
         "MyEngine",
         "SharedGameCode",
-        "Box2D",
+        --"Box2D",
         --"BulletCollision",
         --"BulletDynamics",
         --"LinearMath",
@@ -128,6 +129,9 @@ project "OpenCVTest"
 
     if PremakeConfig_UseLua == false then
         defines "MYFW_USE_LUA=0"
+    end
+    if PremakeConfig_UseBox2D == false then
+        defines "MYFW_USE_BOX2D=0"
     end
     if PremakeConfig_UseBullet == false then
         defines "MYFW_USE_BULLET=0"
