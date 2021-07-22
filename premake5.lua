@@ -17,8 +17,8 @@ end
 
 --monoInstallationPath = "C:/Program Files/Mono" -- TODO: Don't hardcode the path to mono installation.
 
-CopyFile( "Libraries/OpenCV/x64/vc15/bin/opencv_world411.dll", "OpenCVTest/opencv_world411.dll" )
-CopyFile( "Libraries/OpenCV/x64/vc15/bin/opencv_world411d.dll", "OpenCVTest/opencv_world411d.dll" )
+CopyFile( "Libraries/OpenCV/x64/vc15/bin/opencv_world453.dll", "OpenCVTest/opencv_world453.dll" )
+CopyFile( "Libraries/OpenCV/x64/vc15/bin/opencv_world453d.dll", "OpenCVTest/opencv_world453d.dll" )
 CopyFile( "Libraries/Framework/Libraries/pthreads-w32/dll/x64/pthreadVC2.dll", "OpenCVTest/pthreadVC2-x64.dll" )
 --CopyFile( monoInstallationPath .. "/bin/mono-2.0-sgen.dll", "OpenCVTest/mono-2.0-sgen.dll" )
 --os.mkdir( "OpenCVTest/mono/lib/mono/4.5" )
@@ -140,12 +140,12 @@ project "OpenCVTest"
     filter "configurations:Release"
         defines         "NDEBUG"
         optimize        "Full"
-        links { "Libraries/OpenCV/x64/vc15/lib/opencv_world411.lib" }
+        links { "Libraries/OpenCV/x64/vc15/lib/opencv_world453.lib" }
 
     filter "configurations:Debug"
         defines         "_DEBUG"
         symbols         "on"
-        links { "Libraries/OpenCV/x64/vc15/lib/opencv_world411d.lib" }
+        links { "Libraries/OpenCV/x64/vc15/lib/opencv_world453d.lib" }
 if PremakeConfig_UseMemoryTracker == true then
         defines         "MYFW_USE_MEMORY_TRACKER"
 end

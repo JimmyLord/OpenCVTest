@@ -16,6 +16,13 @@ void TestSimpleModification()
     //Mat originalImage = imread( "Data/adult-city-female-1574140.jpg", IMREAD_COLOR );
     Mat originalImage = imread( "Data/action-adventure-backlit-209209.jpg", IMREAD_COLOR );
 
+    if( originalImage.cols == 0 )
+    {
+        // Image wasn't found.
+        LOGInfo( LOGTag, "Hardcoded image not found.\n" );
+        return;
+    }
+
     // Clone the original and modify it.
     Mat modifiedImage = originalImage.clone();
 
@@ -43,6 +50,13 @@ void TestDFT()
     // Load the original image.
     //Mat originalImage = imread( "Data/adult-city-female-1574140.jpg", IMREAD_GRAYSCALE );
     Mat originalImage = imread( "Data/action-adventure-backlit-209209.jpg", IMREAD_GRAYSCALE );
+
+    if( originalImage.cols == 0 )
+    {
+        // Image wasn't found.
+        LOGInfo( LOGTag, "Hardcoded image not found.\n" );
+        return;
+    }
 
     // Generate DFT values.
     Mat dftValues;
@@ -97,6 +111,13 @@ void TestMorph()
     // Load the original image.
     //g_MorphSrc = imread( "Data/adult-city-female-1574140.jpg", IMREAD_COLOR );
     g_MorphSrc = imread( "Data/action-adventure-backlit-209209.jpg", IMREAD_COLOR );
+
+    if( g_MorphSrc.cols == 0 )
+    {
+        // Image wasn't found.
+        LOGInfo( LOGTag, "Hardcoded image not found.\n" );
+        return;
+    }
 
     // Create a window for erosion kernel settings.
     namedWindow( "Erosion Controls", WINDOW_KEEPRATIO );
@@ -168,6 +189,13 @@ void TestThreshold()
     // Load the original image.
     //g_ThresholdSrc = imread( "Data/adult-city-female-1574140.jpg", IMREAD_GRAYSCALE );
     g_ThresholdSrc = imread( "Data/action-adventure-backlit-209209.jpg", IMREAD_GRAYSCALE );
+
+    if( g_ThresholdSrc.cols == 0 )
+    {
+        // Image wasn't found.
+        LOGInfo( LOGTag, "Hardcoded image not found.\n" );
+        return;
+    }
 
     // Create a window for erosion kernel settings.
     namedWindow( "Threshold Controls", WINDOW_KEEPRATIO );

@@ -8,6 +8,12 @@
 
 using namespace cv;
 
+float randFloat(float min, float max)
+{
+    float r01 = rand()/(float)RAND_MAX;
+    return min + (max - min) * r01;
+}
+
 void ShowImageWithFixedWidthAtPosition(const cv::String windowName, cv::Mat& image, int width, int posX, int posY)
 {
     int displayWidth = width;

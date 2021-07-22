@@ -33,6 +33,8 @@ void OpenCVCore::OneTimeInit()
 {
     GameCore::OneTimeInit(); // Note: Not calling EngineCore::OneTimeInit().
 
+    m_pRenderer->SetSwapInterval( 1 );
+
     // Copied from EngineCore::OneTimeInit().
     {
         m_SingleFrameMemoryStack.Initialize( 5000000 );

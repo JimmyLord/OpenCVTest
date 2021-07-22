@@ -3,6 +3,7 @@
 //
 #include "OpenCVPCH.h"
 
+#include "OpenCVNodes_Generators.h"
 #include "OpenCVNodeTypeManager.h"
 
 #include "OpenCVNodeGraph.h"
@@ -25,6 +26,12 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::AddCreateNodeItemsToContextMenu(Vect
     {
         if( ImGui::MenuItem( "Input" ) )     { ImGui::EndMenu(); return CreateNode( "File_Input", pos, pNodeGraph ); }
         if( ImGui::MenuItem( "Output" ) )    { ImGui::EndMenu(); return CreateNode( "File_Output", pos, pNodeGraph ); }
+        ImGui::EndMenu();
+    }
+
+    if( ImGui::BeginMenu( "Generate" ) )
+    {
+        if( ImGui::MenuItem( "PoissonSampling" ) ) { ImGui::EndMenu(); return CreateNode( "Generate_PoissonSampling", pos, pNodeGraph ); }
         ImGui::EndMenu();
     }
 
@@ -59,15 +66,16 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::CreateNode(const char* typeName, Vec
 
 #define TypeIs(name) strcmp( typeName, name ) == 0 )
 
-    if( TypeIs( "File_Input" )           return MyNew OpenCVNode_File_Input(           (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Input", pos );
-    if( TypeIs( "File_Output" )          return MyNew OpenCVNode_File_Output(          (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Output", pos );
-    if( TypeIs( "Convert_Grayscale" )    return MyNew OpenCVNode_Convert_Grayscale(    (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Grayscale", pos );
-    if( TypeIs( "Convert_Crop" )         return MyNew OpenCVNode_Convert_Crop(         (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Crop", pos );
-    if( TypeIs( "Filter_Mask" )          return MyNew OpenCVNode_Filter_Mask(          (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Mask", pos );
-    if( TypeIs( "Filter_Threshold" )     return MyNew OpenCVNode_Filter_Threshold(     (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Threshold", pos );
-    if( TypeIs( "Filter_Bilateral" )     return MyNew OpenCVNode_Filter_Bilateral(     (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Bilateral", pos );
-    if( TypeIs( "Filter_Morphological" ) return MyNew OpenCVNode_Filter_Morphological( (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Morph", pos );
-    if( TypeIs( "Face_Detect" )          return MyNew OpenCVNode_Face_Detect(          (OpenCVNodeGraph*)pNodeGraph, newNodeID, "FaceDetect", pos );
+    if( TypeIs( "File_Input" )                  return MyNew OpenCVNode_File_Input(                 (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Input", pos );
+    if( TypeIs( "File_Output" )                 return MyNew OpenCVNode_File_Output(                (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Output", pos );
+    if( TypeIs( "Generate_PoissonSampling" )    return MyNew OpenCVNode_Generate_PoissonSampling(   (OpenCVNodeGraph*)pNodeGraph, newNodeID, "PoissonSampling", pos );
+    if( TypeIs( "Convert_Grayscale" )           return MyNew OpenCVNode_Convert_Grayscale(          (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Grayscale", pos );
+    if( TypeIs( "Convert_Crop" )                return MyNew OpenCVNode_Convert_Crop(               (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Crop", pos );
+    if( TypeIs( "Filter_Mask" )                 return MyNew OpenCVNode_Filter_Mask(                (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Mask", pos );
+    if( TypeIs( "Filter_Threshold" )            return MyNew OpenCVNode_Filter_Threshold(           (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Threshold", pos );
+    if( TypeIs( "Filter_Bilateral" )            return MyNew OpenCVNode_Filter_Bilateral(           (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Bilateral", pos );
+    if( TypeIs( "Filter_Morphological" )        return MyNew OpenCVNode_Filter_Morphological(       (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Morph", pos );
+    if( TypeIs( "Face_Detect" )                 return MyNew OpenCVNode_Face_Detect(                (OpenCVNodeGraph*)pNodeGraph, newNodeID, "FaceDetect", pos );
 
 #undef TypeIs
 

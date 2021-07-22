@@ -1,7 +1,7 @@
 premake5.exe
 /build
-/OpenCVTest/opencv_world411.dll
-/OpenCVTest/opencv_world411d.dll
+/OpenCVTest/opencv_world453.dll
+/OpenCVTest/opencv_world453d.dll
 /OpenCVTest/pthreadVC2-x64.dll
 /OpenCVTest/mono-2.0-sgen.dll
 /OpenCVTest/mono

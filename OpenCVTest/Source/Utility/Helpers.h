@@ -6,6 +6,8 @@
 
 #include "opencv2/opencv.hpp"
 
+float randFloat(float min, float max);
+
 void ShowImageWithFixedWidthAtPosition(const cv::String windowName, cv::Mat& image, int width, int posX, int posY);
 
 void GenerateDFTFromGrayscaleImage(cv::Mat& image, cv::Mat& output);
