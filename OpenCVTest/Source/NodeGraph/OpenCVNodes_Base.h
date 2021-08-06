@@ -30,6 +30,7 @@ public:
     }
 
     virtual cv::Mat* GetValueMat() { return nullptr; }
+    virtual std::vector<vec2>* GetValuePointList() { return nullptr; }
     virtual const char* GetSettingsString() { return nullptr; }
 
     void QuickRun(bool triggerJustThisNodeIfAutoRunIsOff)
@@ -70,6 +71,20 @@ public:
             cv::Mat* pImage = pNode->GetValueMat();
             if( pImage->empty() == false )
                 return pImage;
+        }
+
+        return nullptr;
+    }
+
+    std::vector<vec2>* GetInputPointList(uint32 slotID)
+    {
+        // Get a point list from input node.
+        OpenCVBaseNode* pNode = static_cast<OpenCVBaseNode*>( m_pNodeGraph->FindNodeConnectedToInput( m_ID, slotID ) );
+        if( pNode )
+        {
+            std::vector<vec2>* pPointList = pNode->GetValuePointList();
+            if( pPointList != nullptr )
+                return pPointList;
         }
 
         return nullptr;
@@ -222,6 +237,8 @@ public:
         }
 
         DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+
+        return false;
     }
 
     virtual bool Trigger(MyEvent* pEvent, bool recursive) override
