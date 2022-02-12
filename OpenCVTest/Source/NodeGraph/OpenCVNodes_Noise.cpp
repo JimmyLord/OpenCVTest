@@ -27,11 +27,29 @@ void OpenCVNode_Generate_SimplexNoise::GenerateNoise()
     {
         for( int x = 0; x < m_ImageSize.x; x++ )
         {
+            vec2 offset = m_Offset;
             float freq = m_Frequency;
-            float noise = (float)open_simplex_noise2( noiseContext, x*freq, y*freq );
-            noise = noise * 0.5f + 0.5f;
+            float amplitude = 1.0f; //m_Amplitude;
+            float persistance = 0.08f; //m_Persistance;
+            float lacunarity = 5.0f; //m_Lacunarity;
 
-            uchar noiseChar = (uchar)( noise * 255 );
+            float totalNoise = 0;
+            for( int octave = 0; octave < m_NumOctaves; octave++ )
+            {
+                vec2 pos = vec2((float)x,(float)y) * freq + offset;
+
+                float noise = (float)open_simplex_noise2( noiseContext, pos.x, pos.y );
+
+                totalNoise += noise * amplitude;
+                amplitude *= persistance;
+                freq *= lacunarity;
+
+                offset.Set( fw::Random::Float(0,10000), fw::Random::Float(0,10000) );
+            }
+            
+            totalNoise = totalNoise * 0.5f + 0.5f;
+
+            uchar noiseChar = (uchar)( totalNoise * 255 );
 
             if( m_Inverse )
                 noiseChar = 255 - noiseChar;
@@ -75,7 +93,10 @@ bool OpenCVNode_Generate_SimplexNoise::DrawContents()
         if( ImGui::DragInt( "Seed", &m_Seed, 1.0f ) ) { QuickRun( false ); }
     }
 
+    if( ImGui::DragInt( "Octaves", &m_NumOctaves, 1, 1, 10 ) ) { QuickRun( false ); }
     if( ImGui::DragFloat( "Freq", &m_Frequency, 0.001f, 0.001f, 1.0f ) ) { QuickRun( false ); }
+    ImGui::SameLine();
+    if( ImGui::DragFloat2( "Offset", &m_Offset.x, 0.1f, 0.0f, 1000.0f ) ) { QuickRun( false ); }
     if( ImGui::Checkbox( "Inverse", &m_Inverse ) ) { QuickRun( false ); }
 
     if( ImGui::Button( "Generate" ) )
@@ -127,7 +148,9 @@ cJSON* OpenCVNode_Generate_SimplexNoise::ExportAsJSONObject()
     cJSON_AddNumberToObject( jNode, "m_UseFixedSeed", m_UseFixedSeed );
     cJSON_AddNumberToObject( jNode, "m_Seed", m_Seed );
 
+    cJSON_AddNumberToObject( jNode, "m_NumOctaves", m_NumOctaves );
     cJSON_AddNumberToObject( jNode, "m_Frequency", m_Frequency );
+    cJSONExt_AddFloatArrayToObject( jNode, "m_Offset", &m_Offset.x, 2 );
     cJSON_AddNumberToObject( jNode, "m_Inverse", m_Inverse );
     return jNode;
 }
@@ -140,7 +163,9 @@ void OpenCVNode_Generate_SimplexNoise::ImportFromJSONObject(cJSON* jNode)
     cJSONExt_GetBool( jNode, "m_UseFixedSeed", m_UseFixedSeed );
     cJSONExt_GetInt( jNode, "m_Seed", m_Seed );
 
+    cJSONExt_GetInt( jNode, "m_NumOctaves", m_NumOctaves );
     cJSONExt_GetFloat( jNode, "m_Frequency", m_Frequency );
+    cJSONExt_GetFloatArray( jNode, "m_Offset", &m_Offset.x, 2 );
     cJSONExt_GetBool( jNode, "m_Inverse", m_Inverse );
 }
 

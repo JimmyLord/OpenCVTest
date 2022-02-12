@@ -25,7 +25,10 @@ protected:
     ivec2 m_ImageSize = ivec2( 512, 512 );
     bool m_UseFixedSeed = true;
     int m_Seed = 0;
+
+    int m_NumOctaves = 1;
     float m_Frequency = 1/100.0f;
+    vec2 m_Offset = vec2( 0.0f, 0.0f );
     bool m_Inverse = false;
 
 public:
