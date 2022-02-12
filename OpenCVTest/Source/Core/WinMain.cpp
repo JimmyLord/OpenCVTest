@@ -36,7 +36,13 @@ FARPROC WINAPI delayHook(unsigned dliNotify, PDelayLoadInfo pdli)
         if( strcmp( pdli->szDll, "pthreadVC2.dll" ) == 0 )
         {
 #if _WIN64
-            return (FARPROC)LoadLibrary( "pthreadVC2-x64.dll" );
+            FARPROC ret = (FARPROC)LoadLibrary( "pthreadVC2-x64.dll" );
+            if( ret == 0 )
+            {
+                DWORD err = GetLastError();
+                assert( false );
+            }
+            return ret;
 #else
             return (FARPROC)LoadLibrary( "pthreadVC2-x86.dll" );
 #endif

@@ -11,6 +11,8 @@ typedef Vector2Int ivec2;
 typedef Vector3Int ivec3;
 typedef Vector4Int ivec4;
 
+inline cv::Point cvPoint(vec2 p) { return cv::Point( (int)p.x, (int)p.y ); }
+
 class ColorRGBf
 {
 public:

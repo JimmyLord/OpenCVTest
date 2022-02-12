@@ -6,6 +6,7 @@
 
 #include "Libraries/Engine/Libraries/imgui/imgui.h"
 #include "Libraries/Engine/Libraries/imgui/imgui_internal.h"
+#include "Utility/Helpers.h"
 
 class OpenCVNodeTypeManager;
 
@@ -15,9 +16,10 @@ public:
     class OpenCVNode;
 
 protected:
-    float m_ImageWidth;
+    float m_GlobalImageScale;
     bool m_AutoRun;
     float m_HoverPixelsToShow;
+    colorPalette m_Palette;
 
 protected:
     // File IO.
@@ -42,10 +44,11 @@ public:
     virtual void AddAdditionalItemsToNodeContextMenu(MyNodeGraph::MyNode* pNode) override;
 
     // Getters.
-    float GetImageWidth() { return m_ImageWidth; }
-    void SetImageWidth(float height) { m_ImageWidth = height; }
+    float GetGlobalImageScale() { return m_GlobalImageScale; }
+    void SetGlobalImageScale(float scale) { m_GlobalImageScale = scale; }
     bool GetAutoRun() { return m_AutoRun; }
     float GetHoverPixelsToShow() { return m_HoverPixelsToShow; }
+    colorPalette& GetPalette() { return m_Palette; }
 };
 
 //====================================================================================================

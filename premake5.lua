@@ -100,6 +100,8 @@ project "OpenCVTest"
         "OpenCVTest/Data/Shaders/**.glsl",
         "OpenCVTest/Source/**.cpp",
         "OpenCVTest/Source/**.h",
+        "Libraries/Delaunator/**.cpp",
+        "Libraries/Delaunator/**.hpp",
         "PremakeGenerateBuildFiles.bat",
         "premake5.lua",
         "PremakeGenerateBuildFiles.bat",

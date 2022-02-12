@@ -62,6 +62,7 @@ void OpenCVCore::OneTimeInit()
     {
         cJSON* jEditorPrefs = m_pEditorPrefs->GetEditorPrefsJSONString();
         cJSON* jOpenDocumentsArray = cJSON_GetObjectItem( jEditorPrefs, "State_OpenDocuments" );
+        cJSON* jOpenDocumentScrollOffsetsArray = cJSON_GetObjectItem( jEditorPrefs, "State_OpenDocuments_ScrollOffsets" );
         if( jOpenDocumentsArray )
         {
             for( int i=0; i<cJSON_GetArraySize( jOpenDocumentsArray ); i++ )
@@ -83,6 +84,13 @@ void OpenCVCore::OneTimeInit()
                     pNewDocument->Load();
                     m_pActiveDocument = pNewDocument;
                     GetEditorState()->OpenDocument( pNewDocument );
+
+                    if( jOpenDocumentScrollOffsetsArray )
+                    {
+                        Vector2 offset;
+                        cJSONExt_GetFloatArrayFromArray( jOpenDocumentScrollOffsetsArray, i, &offset.x, 2 );
+                        pNewDocument->SetWindowScrollOffset( offset );
+                    }
                 }
             }
         }

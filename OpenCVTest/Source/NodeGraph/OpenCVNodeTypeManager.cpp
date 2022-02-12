@@ -32,6 +32,7 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::AddCreateNodeItemsToContextMenu(Vect
     if( ImGui::BeginMenu( "Generate" ) )
     {
         if( ImGui::MenuItem( "PoissonSampling" ) ) { ImGui::EndMenu(); return CreateNode( "Generate_PoissonSampling", pos, pNodeGraph ); }
+        if( ImGui::MenuItem( "RegularGrid" ) )     { ImGui::EndMenu(); return CreateNode( "Generate_RegularGrid", pos, pNodeGraph ); }
         ImGui::EndMenu();
     }
 
@@ -69,6 +70,7 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::CreateNode(const char* typeName, Vec
     if( TypeIs( "File_Input" )                  return MyNew OpenCVNode_File_Input(                 (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Input", pos );
     if( TypeIs( "File_Output" )                 return MyNew OpenCVNode_File_Output(                (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Output", pos );
     if( TypeIs( "Generate_PoissonSampling" )    return MyNew OpenCVNode_Generate_PoissonSampling(   (OpenCVNodeGraph*)pNodeGraph, newNodeID, "PoissonSampling", pos );
+    if( TypeIs( "Generate_RegularGrid" )        return MyNew OpenCVNode_Generate_RegularGrid(       (OpenCVNodeGraph*)pNodeGraph, newNodeID, "RegularGrid", pos );
     if( TypeIs( "Convert_Grayscale" )           return MyNew OpenCVNode_Convert_Grayscale(          (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Grayscale", pos );
     if( TypeIs( "Convert_Crop" )                return MyNew OpenCVNode_Convert_Crop(               (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Crop", pos );
     if( TypeIs( "Filter_Mask" )                 return MyNew OpenCVNode_Filter_Mask(                (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Mask", pos );

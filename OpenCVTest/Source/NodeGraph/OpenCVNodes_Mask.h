@@ -52,12 +52,12 @@ public:
     {
         bool modified = OpenCVBaseNode::DrawContents();
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, GetDisplayWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
         return modified;
     }
 
-    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    virtual bool Trigger(MyEvent* pEvent, TriggerFlags triggerFlags) override
     {
         //OpenCVBaseNode::Trigger( pEvent );
 
@@ -104,7 +104,7 @@ public:
             m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
             // Trigger the output nodes.
-            TriggerOutputNodes( pEvent, recursive );
+            TriggerOutputNodes( pEvent, triggerFlags & TriggerFlags::TF_Recursive );
         }
 
         return false;
@@ -118,7 +118,7 @@ public:
 
     virtual void ImportFromJSONObject(cJSON* jNode) override
     {
-        MyNode::ImportFromJSONObject( jNode );
+        OpenCVBaseNode::ImportFromJSONObject( jNode );
     }
 
     virtual cv::Mat* GetValueMat() override { return &m_Image; }

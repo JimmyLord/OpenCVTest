@@ -35,6 +35,10 @@ public:
         m_pTexture = nullptr;
         //VSNAddVar( &m_VariablesList, "Float", ComponentVariableType_Float, MyOffsetOf( this, &this->m_Float ), true, true, "", nullptr, nullptr, nullptr );
         
+#if !_DEBUG
+        // Always load the classifiers in release, it's pretty quick.
+        LoadClassifiers();
+#endif
     }
 
     ~OpenCVNode_Face_Detect()
@@ -76,12 +80,12 @@ public:
             }
         }
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, GetDisplayWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
         return modified;
     }
 
-    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    virtual bool Trigger(MyEvent* pEvent, TriggerFlags triggerFlags) override
     {
         if( m_FaceClassifier.empty() == true )
             return false;
@@ -187,7 +191,7 @@ public:
             m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
             // Trigger the output nodes.
-            TriggerOutputNodes( pEvent, recursive );
+            TriggerOutputNodes( pEvent, triggerFlags & TriggerFlags::TF_Recursive );
         }
 
         return false;
@@ -201,7 +205,7 @@ public:
 
     virtual void ImportFromJSONObject(cJSON* jNode) override
     {
-        MyNode::ImportFromJSONObject( jNode );
+        OpenCVBaseNode::ImportFromJSONObject( jNode );
     }
 
     virtual cv::Mat* GetValueMat() override { return &m_Image; }

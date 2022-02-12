@@ -113,12 +113,18 @@ public:
         }
         ImGui::Text( "Size: %dx%d", m_Image.cols, m_Image.rows );
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, GetDisplayWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
         return false;
     }
 
-    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    virtual void TriggerGlobalRun() override
+    {
+        //Trigger( nullptr, (TriggerFlags)(TriggerFlags::TF_Recursive | TriggerFlags::TF_TriggeredByParent) );
+        Trigger( nullptr, TriggerFlags::TF_Recursive | TriggerFlags::TF_TriggeredByParent );
+    }
+
+    virtual bool Trigger(MyEvent* pEvent, TriggerFlags triggerFlags) override
     {
         //OpenCVBaseNode::Trigger( pEvent );
 
@@ -127,7 +133,7 @@ public:
         m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
         // Trigger the output nodes.
-        TriggerOutputNodes( pEvent, recursive );
+        TriggerOutputNodes( pEvent, triggerFlags & TriggerFlags::TF_Recursive );
 
         return false;
     }
@@ -141,7 +147,7 @@ public:
 
     virtual void ImportFromJSONObject(cJSON* jNode) override
     {
-        MyNode::ImportFromJSONObject( jNode );
+        OpenCVBaseNode::ImportFromJSONObject( jNode );
         cJSON* jObj = cJSON_GetObjectItem( jNode, "m_Filename" );
         if( jObj )
             m_Filename.assign( jObj->valuestring );
@@ -202,7 +208,7 @@ public:
 
                 m_Filename = relativePath;
 
-                Trigger( nullptr, false );
+                Trigger( nullptr, TriggerFlags::TF_None );
             }
         }
 
@@ -216,7 +222,7 @@ public:
         return false;
     }
 
-    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    virtual bool Trigger(MyEvent* pEvent, TriggerFlags triggerFlags) override
     {
         return true;
     }
@@ -233,6 +239,11 @@ public:
         if( outputImage.empty() == true )
             return;
 
+        Save( outputImage, m_Filename );
+    }
+
+    static void Save(cv::Mat& outputImage, std::string filename, OpenCVBaseNode* pNode = nullptr)
+    {
         cv::Mat temp;
         int type = outputImage.type();
         if( type == CV_32F )
@@ -250,13 +261,16 @@ public:
             temp = outputImage;
         }
 
-        std::string tempFilename = m_Filename;
+        std::string tempFilename = filename;
 
         // Append the setting string returned by the previous node.
-        const char* settingsString = pNode->GetSettingsString();
-        if( settingsString )
+        if( pNode )
         {
-            tempFilename += settingsString;
+            std::string settingsString = pNode->GetSettingsString();
+            if( settingsString.length() > 0 )
+            {
+                tempFilename += settingsString;
+            }
         }
 
         // Append a .png.
@@ -280,7 +294,7 @@ public:
 
     virtual void ImportFromJSONObject(cJSON* jNode) override
     {
-        MyNode::ImportFromJSONObject( jNode );
+        OpenCVBaseNode::ImportFromJSONObject( jNode );
         cJSON* jObj = cJSON_GetObjectItem( jNode, "m_Filename" );
         if( jObj )
             m_Filename.assign( jObj->valuestring );
@@ -335,12 +349,12 @@ public:
     {
         OpenCVBaseNode::DrawContents();
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, GetDisplayWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
         return false;
     }
 
-    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    virtual bool Trigger(MyEvent* pEvent, TriggerFlags triggerFlags) override
     {
         //OpenCVBaseNode::Trigger( pEvent );
 
@@ -354,7 +368,7 @@ public:
             m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
             // Trigger the output nodes.
-            TriggerOutputNodes( pEvent, recursive );
+            TriggerOutputNodes( pEvent, triggerFlags & TriggerFlags::TF_Recursive );
         }
 
         return false;
@@ -431,7 +445,7 @@ public:
                 QuickRun( true );
             }
 
-            DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+            DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, GetDisplayWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
         }
         else
         {
@@ -441,7 +455,7 @@ public:
         return false;
     }
 
-    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    virtual bool Trigger(MyEvent* pEvent, TriggerFlags triggerFlags) override
     {
         //OpenCVBaseNode::Trigger( pEvent );
 
@@ -453,13 +467,13 @@ public:
             Validate( pImage );
 
             // Crop out a subregion of the image.
-            cv::cvtColor( *pImage, m_Image, cv::COLOR_BGR2GRAY );
+            //cv::cvtColor( *pImage, m_Image, cv::COLOR_BGR2GRAY );
             cv::Rect cropArea( m_TopLeft.x, m_TopLeft.y, m_Size.x, m_Size.y );
             m_Image = (*pImage)( cropArea );
             m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
             // Trigger the output nodes.
-            TriggerOutputNodes( pEvent, recursive );
+            TriggerOutputNodes( pEvent, triggerFlags & TriggerFlags::TF_Recursive );
         }
 
         return false;
@@ -488,7 +502,7 @@ public:
 
     virtual void ImportFromJSONObject(cJSON* jNode) override
     {
-        MyNode::ImportFromJSONObject( jNode );
+        OpenCVBaseNode::ImportFromJSONObject( jNode );
         cJSONExt_GetIntArray( jNode, "m_TopLeft", &m_TopLeft.x, 2 );
         cJSONExt_GetIntArray( jNode, "m_Size", &m_Size.x, 2 );
     }
@@ -581,12 +595,12 @@ public:
             ImGui::EndCombo();
         }
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, GetDisplayWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
         return false;
     }
 
-    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    virtual bool Trigger(MyEvent* pEvent, TriggerFlags triggerFlags) override
     {
         //OpenCVBaseNode::Trigger( pEvent );
 
@@ -616,7 +630,7 @@ public:
             m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
             // Trigger the output nodes.
-            TriggerOutputNodes( pEvent, recursive );
+            TriggerOutputNodes( pEvent, triggerFlags & TriggerFlags::TF_Recursive );
         }
 
         return false;
@@ -632,7 +646,7 @@ public:
 
     virtual void ImportFromJSONObject(cJSON* jNode) override
     {
-        MyNode::ImportFromJSONObject( jNode );
+        OpenCVBaseNode::ImportFromJSONObject( jNode );
         cJSONExt_GetFloat( jNode, "m_ThresholdValue", &m_ThresholdValue );
         cJSONExt_GetInt( jNode, "m_ThresholdType", &m_ThresholdType );
     }
@@ -651,7 +665,7 @@ class OpenCVNode_Filter_Bilateral : public OpenCVBaseNode
 protected:
     cv::Mat m_Image;
     TextureDefinition* m_pTexture;
-    std::string m_SettingsString;
+
     int m_WindowSize;
     float m_SigmaColor;
     float m_SigmaSpace;
@@ -698,12 +712,12 @@ public:
         if( ImGui::DragFloat( "Sigma Space", &m_SigmaSpace, 1.0f, 0.0f, 255.0f ) ) { QuickRun( false ); }
         ImGui::Text( "Runtime: %f", m_LastProcessTime );
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, GetDisplayWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
         return false;
     }
 
-    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    virtual bool Trigger(MyEvent* pEvent, TriggerFlags triggerFlags) override
     {
         //OpenCVBaseNode::Trigger( pEvent );
 
@@ -721,7 +735,7 @@ public:
             m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
             // Trigger the output nodes.
-            TriggerOutputNodes( pEvent, recursive );
+            TriggerOutputNodes( pEvent, triggerFlags & TriggerFlags::TF_Recursive );
         }
 
         return false;
@@ -738,23 +752,24 @@ public:
 
     virtual void ImportFromJSONObject(cJSON* jNode) override
     {
-        MyNode::ImportFromJSONObject( jNode );
+        OpenCVBaseNode::ImportFromJSONObject( jNode );
         cJSONExt_GetInt( jNode, "m_WindowSize", &m_WindowSize );
         cJSONExt_GetFloat( jNode, "m_SigmaColor", &m_SigmaColor );
         cJSONExt_GetFloat( jNode, "m_SigmaSpace", &m_SigmaSpace );
     }
 
-    virtual cv::Mat* GetValueMat() override { return &m_Image; }
-    virtual const char* GetSettingsString() override
+    virtual std::string GetSettingsString() override
     {
-        m_SettingsString = "-w" + std::to_string( m_WindowSize );
-        m_SettingsString += "-c";
-        PrintFloatBadlyWithPrecision( m_SettingsString, m_SigmaColor, 2 );
-        m_SettingsString += "-s";
-        PrintFloatBadlyWithPrecision( m_SettingsString, m_SigmaSpace, 2 );
+        std::string settingsString;
 
-        return m_SettingsString.c_str();
+        settingsString = "-w" + std::to_string( m_WindowSize );
+        settingsString += "-c"; PrintFloatBadlyWithPrecision( settingsString, m_SigmaColor, 2 );
+        settingsString += "-s"; PrintFloatBadlyWithPrecision( settingsString, m_SigmaSpace, 2 );
+
+        return settingsString;
     }
+
+    virtual cv::Mat* GetValueMat() override { return &m_Image; }
 };
 
 //====================================================================================================
@@ -825,7 +840,7 @@ public:
 protected:
     cv::Mat m_Image;
     TextureDefinition* m_pTexture;
-    std::string m_SettingsString;
+
     int m_WindowSize;
     MorphType m_MorphType;
     MorphKernel m_MorphKernel;
@@ -909,12 +924,12 @@ public:
 
         ImGui::Text( "Runtime: %f", m_LastProcessTime );
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, GetDisplayWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
         return false;
     }
 
-    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    virtual bool Trigger(MyEvent* pEvent, TriggerFlags triggerFlags) override
     {
         //OpenCVBaseNode::Trigger( pEvent );
 
@@ -937,7 +952,7 @@ public:
             m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
             // Trigger the output nodes.
-            TriggerOutputNodes( pEvent, recursive );
+            TriggerOutputNodes( pEvent, triggerFlags & TriggerFlags::TF_Recursive );
         }
 
         return false;
@@ -954,23 +969,24 @@ public:
 
     virtual void ImportFromJSONObject(cJSON* jNode) override
     {
-        MyNode::ImportFromJSONObject( jNode );
+        OpenCVBaseNode::ImportFromJSONObject( jNode );
         cJSONExt_GetInt( jNode, "m_WindowSize", &m_WindowSize );
         cJSONExt_GetInt( jNode, "m_MorphType", (int*)&m_MorphType );
         cJSONExt_GetInt( jNode, "m_MorphKernel", (int*)&m_MorphKernel );
     }
 
-    virtual cv::Mat* GetValueMat() override { return &m_Image; }
-    virtual const char* GetSettingsString() override
+    virtual std::string GetSettingsString() override
     {
-        m_SettingsString = "-w" + std::to_string( m_WindowSize );
-        //m_SettingsString += "-c";
-        //PrintFloatBadlyWithPrecision( m_SettingsString, m_MorphType, 2 );
-        //m_SettingsString += "-s";
-        //PrintFloatBadlyWithPrecision( m_SettingsString, m_MorphKernel, 2 );
+        std::string settingsString;
 
-        return m_SettingsString.c_str();
+        settingsString = "-w" + std::to_string( m_WindowSize );
+        //settingsString += "-c"; PrintFloatBadlyWithPrecision( settingsString, m_MorphType, 2 );
+        //settingsString += "-s"; PrintFloatBadlyWithPrecision( settingsString, m_MorphKernel, 2 );
+
+        return settingsString;
     }
+
+    virtual cv::Mat* GetValueMat() override { return &m_Image; }
 };
 
 #endif //__OpenCVNodes_Core_H__

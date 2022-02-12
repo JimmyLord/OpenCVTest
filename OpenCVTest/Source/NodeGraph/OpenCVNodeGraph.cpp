@@ -3,6 +3,8 @@
 //
 #include "OpenCVPCH.h"
 
+#include <shlobj.h> // for SHGetFolderPath to get desktop path.
+
 #include "OpenCVNodeGraph.h"
 #include "OpenCVNodes_Base.h"
 #include "OpenCVNodes_Core.h"
@@ -11,9 +13,11 @@
 OpenCVNodeGraph::OpenCVNodeGraph(EngineCore* pEngineCore, OpenCVNodeTypeManager* pNodeTypeManager)
 : MyNodeGraph( pEngineCore, pNodeTypeManager )
 {
-    m_ImageWidth = 200;
+    m_GlobalImageScale = 1.0f;
     m_AutoRun = true;
     m_HoverPixelsToShow = 32.0f;
+
+    m_Palette = GeneratePalette();
 }
 
 OpenCVNodeGraph::~OpenCVNodeGraph()
@@ -68,7 +72,7 @@ void OpenCVNodeGraph::Save()
 
         // Create JSON string.
         cJSON* jNodeGraph = ExportAsJSONObject();
-		cJSON_AddNumberToObject( jNodeGraph, "m_ImageWidth", m_ImageWidth );
+		cJSON_AddNumberToObject( jNodeGraph, "m_GlobalImageScale", m_GlobalImageScale );
 
         char* jsonString = cJSON_Print( jNodeGraph );
 
@@ -103,10 +107,7 @@ void OpenCVNodeGraph::Run()
         for( unsigned int i=0; i<m_Nodes.size(); i++ )
         {
             OpenCVBaseNode* pNode = (OpenCVBaseNode*)m_Nodes[i];
-            if( strcmp( pNode->GetType(), "File_Input" ) == 0 )
-            {
-                pNode->Trigger( nullptr, true );
-            }
+            pNode->TriggerGlobalRun();
         }
     }
     else
@@ -115,7 +116,7 @@ void OpenCVNodeGraph::Run()
         for( int i=0; i<m_SelectedNodeIDs.size(); i++ )
         {
             int nodeIndex = FindNodeIndexByID( m_SelectedNodeIDs[i] );
-            ((OpenCVBaseNode*)m_Nodes[nodeIndex])->Trigger( nullptr, false );
+            ((OpenCVBaseNode*)m_Nodes[nodeIndex])->Trigger( nullptr, OpenCVBaseNode::TriggerFlags::TF_Recursive );
         }
     }
 }
@@ -124,19 +125,19 @@ void OpenCVNodeGraph::ImportFromJSONObject(cJSON* jNodeGraph)
 {
 	MyNodeGraph::ImportFromJSONObject( jNodeGraph );
 
-	cJSONExt_GetFloat( jNodeGraph, "m_ImageWidth", &m_ImageWidth );
+	cJSONExt_GetFloat( jNodeGraph, "m_GlobalImageScale", &m_GlobalImageScale );
 }
 
 void OpenCVNodeGraph::AddItemsAboveNodeGraphWindow()
 {
-    ImGui::Text( "Scroll (%.2f,%.2f)", m_ScrollOffset.x, m_ScrollOffset.y );
+    ImGui::Text( "Scroll (%.2f,%.2f)", m_WindowScrollOffset.x, m_WindowScrollOffset.y );
     
     ImGui::SameLine();
     ImGui::Checkbox( "Auto Run", &m_AutoRun );
     
     ImGui::SameLine();
     ImGui::PushItemWidth( 100 );
-    ImGui::DragFloat( "Image Width", &m_ImageWidth );
+    ImGui::DragFloat( "Image Scale", &m_GlobalImageScale, 0.01f, 0.0f, 2.0f );
     
     ImGui::SameLine();
     ImGui::PushItemWidth( 100 );
@@ -151,17 +152,43 @@ void OpenCVNodeGraph::AddAdditionalItemsToNodeContextMenu(MyNodeGraph::MyNode* p
     // Draw context menu.
     if( ImGui::MenuItem( "Run", nullptr, false ) )
     {
-        ((OpenCVBaseNode*)pNode)->Trigger( nullptr, true );
+        ((OpenCVBaseNode*)pNode)->Trigger( nullptr, OpenCVBaseNode::TriggerFlags::TF_Recursive );
     }
 
     if( ImGui::MenuItem( "Run this node only", nullptr, false ) )
     {
-        ((OpenCVBaseNode*)pNode)->Trigger( nullptr, false );
+        ((OpenCVBaseNode*)pNode)->Trigger( nullptr, OpenCVBaseNode::TriggerFlags::TF_None );
+    }
+
+    if( ((OpenCVBaseNode*)pNode)->m_MaxImageDisplayWidth != 0 )
+    {
+        ImGui::SliderInt( "Size", &((OpenCVBaseNode*)pNode)->m_ImageDisplayWidth, 16, ((OpenCVBaseNode*)pNode)->m_MaxImageDisplayWidth );
     }
 
     if( ImGui::MenuItem( "Zoom to native" ) )
     {
         cv::Mat* pMat = ((OpenCVBaseNode*)pNode)->GetValueMat();
-        SetImageWidth( (float)pMat->cols );
+        ((OpenCVBaseNode*)pNode)->m_ImageDisplayWidth = ((OpenCVBaseNode*)pNode)->m_MaxImageDisplayWidth;
+    }
+
+    if( ImGui::MenuItem( "Save Image To Desktop" ) )
+    {
+        char desktopPath[MAX_PATH+1];
+        SHGetFolderPath( NULL, CSIDL_DESKTOP, NULL, 0, desktopPath );
+
+        std::string fileWithPath = desktopPath;
+        fileWithPath += "\\temp";
+
+        std::string settingsString = pNode->GetSettingsString();
+        if( settingsString.length() > 0 )
+        {
+            fileWithPath += settingsString;
+        }
+
+        fileWithPath += std::to_string( MyTime_GetSystemTime() );
+        fileWithPath += ".png";
+
+        cv::Mat* pMat = ((OpenCVBaseNode*)pNode)->GetValueMat();
+        OpenCVNode_File_Output::Save( *pMat, fileWithPath );
     }
 }

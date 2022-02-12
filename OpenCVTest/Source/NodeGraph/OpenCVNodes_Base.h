@@ -17,9 +17,15 @@ class ComponentBase;
 
 class OpenCVBaseNode : public MyNodeGraph::MyNode
 {
+    friend class OpenCVNodeGraph;
+
 protected:
     OpenCVNodeGraph* m_pNodeGraph; // Hide the m_pNodeGraph in the MyNode class with a pointer to an OpenCVNodeGraph.
     double m_LastProcessTime;
+
+    int m_KnownImageWidth;
+    int m_ImageDisplayWidth;
+    int m_MaxImageDisplayWidth;
 
 public:
     OpenCVBaseNode(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int inputsCount, int outputsCount)
@@ -27,28 +33,85 @@ public:
     {
         m_pNodeGraph = pNodeGraph;
         m_LastProcessTime = 0.0;
+
+        m_KnownImageWidth = 0;
+        m_ImageDisplayWidth = 0; // If 0, use max to display.
+        m_MaxImageDisplayWidth = 0;
     }
 
     virtual cv::Mat* GetValueMat() { return nullptr; }
     virtual std::vector<vec2>* GetValuePointList() { return nullptr; }
-    virtual const char* GetSettingsString() { return nullptr; }
+
+    virtual void TriggerGlobalRun() {}
 
     void QuickRun(bool triggerJustThisNodeIfAutoRunIsOff)
     {
         if( m_pNodeGraph->GetAutoRun() ) 
         {
             // Trigger all nodes recursively.
-            Trigger( nullptr, true );
+            Trigger( nullptr, TriggerFlags::TF_Recursive );
         }
         else if( triggerJustThisNodeIfAutoRunIsOff )
         {
             // Trigger just this node.
-            Trigger( nullptr, false );
+            Trigger( nullptr, TriggerFlags::TF_None );
         }
     }
 
+    enum TriggerFlags // operators defined below this class in global space.
+    {
+        TF_None                = 0x00,
+        TF_Recursive           = 0x01,
+        TF_TriggeredByParent   = 0x02,
+        TF_All                 = 0xFF,
+    };
+
     virtual bool Trigger(MyEvent* pEvent = nullptr) { return false; }
-    virtual bool Trigger(MyEvent* pEvent = nullptr, bool recursive = true) { return false; }
+    virtual bool Trigger(MyEvent* pEvent = nullptr, TriggerFlags triggerFlags = TriggerFlags::TF_All) { return false; }
+
+    virtual cJSON* ExportAsJSONObject()
+    {
+        cJSON* jNode = MyNodeGraph::MyNode::ExportAsJSONObject();
+        cJSON_AddNumberToObject( jNode, "m_ImageDisplayWidth", m_ImageDisplayWidth );
+        return jNode;
+    }
+
+    virtual void ImportFromJSONObject(cJSON* jNode)
+    {
+        MyNodeGraph::MyNode::ImportFromJSONObject( jNode );
+        cJSONExt_GetInt( jNode, "m_ImageDisplayWidth", &m_ImageDisplayWidth );
+    }
+
+    //virtual std::string GetSettingsString() override;
+
+    void AdjustKnownImageWidth(int actualWidth)
+    {
+        // Parent class values.
+        if( m_KnownImageWidth != actualWidth )
+        {
+            m_KnownImageWidth = actualWidth;
+            m_MaxImageDisplayWidth = actualWidth;
+
+            if( m_ImageDisplayWidth == 0 )
+            {
+                m_ImageDisplayWidth = actualWidth;
+            }
+        }
+    }
+
+    int GetDisplayWidth()
+    {
+        int w = m_ImageDisplayWidth == 0 ? m_MaxImageDisplayWidth : m_ImageDisplayWidth;
+        int outWidth = (int)(w * m_pNodeGraph->GetGlobalImageScale());
+
+        if( outWidth == 0 )
+            outWidth = 256;
+
+        if( outWidth < 16 )
+            outWidth = 16;
+
+        return outWidth;
+    }
 
     void TriggerOutputNodes(MyEvent* pEvent, bool recursive)
     {
@@ -57,7 +120,7 @@ public:
             int count = 0;
             while( OpenCVBaseNode* pNode = (OpenCVBaseNode*)m_pNodeGraph->FindNodeConnectedToOutput( m_ID, 0, count++ ) )
             {
-                pNode->Trigger( nullptr, true );
+                pNode->Trigger( nullptr, TriggerFlags::TF_All );
             }
         }
     }
@@ -91,6 +154,26 @@ public:
     }
 };
 
+inline OpenCVBaseNode::TriggerFlags operator~(OpenCVBaseNode::TriggerFlags o)
+{
+    return (OpenCVBaseNode::TriggerFlags)( ~(int)o );
+}
+
+inline OpenCVBaseNode::TriggerFlags operator|(OpenCVBaseNode::TriggerFlags l, OpenCVBaseNode::TriggerFlags r)
+{
+    return (OpenCVBaseNode::TriggerFlags)( (int)l | (int)r );
+}
+
+inline void operator&=(OpenCVBaseNode::TriggerFlags& l, OpenCVBaseNode::TriggerFlags r)
+{
+    l = (OpenCVBaseNode::TriggerFlags)( (int)l & (int)r );
+}
+
+inline void operator|=(OpenCVBaseNode::TriggerFlags& l, OpenCVBaseNode::TriggerFlags r)
+{
+    l = (OpenCVBaseNode::TriggerFlags)( (int)l | (int)r );
+}
+
 //====================================================================================================
 // OpenCVBaseNodeWithAutorun and OpenCVBaseFilter
 //====================================================================================================
@@ -123,7 +206,6 @@ class OpenCVBaseNodeWithAutorun : public OpenCVBaseNode
 protected:
     cv::Mat m_Image;
     TextureDefinition* m_pTexture;
-    std::string m_SettingsString;
 
     OpenCVBaseFilter* m_pFilter;
 
@@ -236,12 +318,12 @@ public:
             QuickRun( false );
         }
 
-        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, m_pNodeGraph->GetImageWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
+        DisplayOpenCVMatAndTexture( &m_Image, m_pTexture, GetDisplayWidth(), m_pNodeGraph->GetHoverPixelsToShow() );
 
         return false;
     }
 
-    virtual bool Trigger(MyEvent* pEvent, bool recursive) override
+    virtual bool Trigger(MyEvent* pEvent, TriggerFlags triggerFlags) override
     {
         //OpenCVBaseNode::Trigger( pEvent );
 
@@ -289,7 +371,7 @@ public:
                 m_pTexture = CreateOrUpdateTextureDefinitionFromOpenCVMat( &m_Image, m_pTexture );
 
                 // Trigger the ouput nodes.
-                TriggerOutputNodes( pEvent, recursive );
+                TriggerOutputNodes( pEvent, triggerFlags & TriggerFlags::TF_Recursive );
             }
         }
 

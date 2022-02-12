@@ -14,6 +14,12 @@ float randFloat(float min, float max)
     return min + (max - min) * r01;
 }
 
+size_t randSizeT(size_t min, size_t max)
+{
+    float r01 = rand()/(float)RAND_MAX;
+    return min + (int)round((max - min) * r01);
+}
+
 void ShowImageWithFixedWidthAtPosition(const cv::String windowName, cv::Mat& image, int width, int posX, int posY)
 {
     int displayWidth = width;
@@ -213,7 +219,7 @@ TextureDefinition* CreateOrUpdateTextureDefinitionFromOpenCVMat(cv::Mat* pImage,
     return pOldTexture;
 }
 
-void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, float size, float pixelsToShow)
+void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, int width, float pixelsToShow, HoverCallbackFunc pHoverCallbackFunc)
 {
     if( pTexture != nullptr && pImage->empty() == false )
     {
@@ -224,7 +230,7 @@ void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, fl
         ImVec2 pos = ImGui::GetCursorScreenPos();
 
         ImVec2 uvMax = ImVec2( (float)pImage->cols / pow2cols, (float)pImage->rows / pow2rows );
-        ImGui::Image( (void*)pTexture, ImVec2( size, size*aspect ), ImVec2( 0, 0 ), uvMax );
+        ImGui::Image( (void*)pTexture, ImVec2( (float)width, width*aspect ), ImVec2( 0, 0 ), uvMax );
 
         if( ImGui::IsItemHovered() )
         {
@@ -235,7 +241,7 @@ void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, fl
             Vector2 textureSize = Vector2( (float)pow2cols, (float)pow2rows );
             Vector2 imageSizeNative = Vector2( (float)pImage->cols, (float)pImage->rows );
             Vector2 regionSizeNative = Vector2( pixelsToShow, pixelsToShow*aspect );
-            Vector2 viewportSizeNative = Vector2( size, size*aspect );
+            Vector2 viewportSizeNative = Vector2( (float)width, width*aspect );
 
             Vector2 regionCenterViewport( io.MousePos.x - pos.x, io.MousePos.y - pos.y );
             Vector2 regionCenterNative = regionCenterViewport / viewportSizeNative * imageSizeNative;
@@ -264,6 +270,11 @@ void DisplayOpenCVMatAndTexture(cv::Mat* pImage, TextureDefinition* pTexture, fl
             }
 
             ImGui::Image( (void*)pTexture, ImVec2( 128, 128 * aspect ), uv0, uv1, ImColor(255,255,255,255), ImColor(255,255,255,128));
+
+            if( pHoverCallbackFunc != nullptr )
+            {
+                pHoverCallbackFunc( regionCenterNative );
+            }
             
             ImGui::EndTooltip();
         }
@@ -283,4 +294,61 @@ void PrintFloatBadlyWithPrecision(std::string& str, float value, int maxDecimalP
     str.erase( str.find_last_not_of('0') + 1, std::string::npos );
     str.erase( str.find_last_not_of('.') + 1, std::string::npos );
     replace( str.begin(), str.end(), '.', '_' );
+}
+
+std::vector<cv::Vec3b> GeneratePalette()
+{
+    std::vector<cv::Vec3b> palette;
+    palette.push_back( cv::Vec3b( 30, 30, 30 ) );
+
+    palette.push_back( cv::Vec3b( 128, 0, 0 ) );
+    palette.push_back( cv::Vec3b( 0, 128, 0 ) );
+    palette.push_back( cv::Vec3b( 0, 0, 128 ) );
+    palette.push_back( cv::Vec3b( 128, 128, 0 ) );
+    palette.push_back( cv::Vec3b( 128, 0, 128 ) );
+    palette.push_back( cv::Vec3b( 0, 128, 128 ) );
+    palette.push_back( cv::Vec3b( 128, 128, 128 ) );
+
+    palette.push_back( cv::Vec3b( 192, 0, 0 ) );
+    palette.push_back( cv::Vec3b( 0, 192, 0 ) );
+    palette.push_back( cv::Vec3b( 0, 0, 192 ) );
+    palette.push_back( cv::Vec3b( 192, 192, 0 ) );
+    palette.push_back( cv::Vec3b( 192, 0, 192 ) );
+    palette.push_back( cv::Vec3b( 0, 192, 192 ) );
+    palette.push_back( cv::Vec3b( 192, 192, 192 ) );
+
+    palette.push_back( cv::Vec3b( 255, 0, 0 ) );
+    palette.push_back( cv::Vec3b( 0, 255, 0 ) );
+    palette.push_back( cv::Vec3b( 0, 0, 255 ) );
+    palette.push_back( cv::Vec3b( 255, 255, 0 ) );
+    palette.push_back( cv::Vec3b( 255, 0, 255 ) );
+    palette.push_back( cv::Vec3b( 0, 255, 255 ) );
+    palette.push_back( cv::Vec3b( 255, 255, 255 ) );
+
+    for( int i=0; i<1000; i++ )
+    {
+        palette.push_back( cv::Vec3b( rand()%255, rand()%255, rand()%255 ) );
+    }
+
+    return palette;
+}
+
+cv::Vec3f AsVec3f(Vector3 v)
+{
+    return cv::Vec3f( v.x, v.y, v.z );
+}
+
+cv::Vec3b AsVec3b(Vector3 v)
+{
+    return cv::Vec3b( (char)v.x, (char)v.y, (char)v.z );
+}
+
+Vector3 AsVec3(cv::Vec3f v)
+{
+    return Vector3( v[0], v[1], v[2] );
+}
+
+Vector3 AsVec3(cv::Vec3b v)
+{
+    return Vector3( v[0], v[1], v[2] );
 }
