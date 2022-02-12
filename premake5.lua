@@ -113,6 +113,9 @@ project "OpenCVTest"
             "premake5.lua",
             ".gitignore",
         },
+        ["Libraries/*"] = {
+            "Libraries/*",
+        },
         -- Place the SourceCommon and SourceEditor folders in the root of the project.
         ["*"] = {
             "OpenCVTest",

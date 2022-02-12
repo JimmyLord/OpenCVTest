@@ -1,15 +1,16 @@
 //
-// Copyright (c) 2019 Jimmy Lord http://www.flatheadgames.com
+// Copyright (c) 2022 Jimmy Lord http://www.flatheadgames.com
 //
 #include "OpenCVPCH.h"
 
-#include "OpenCVNodes_Generators.h"
 #include "OpenCVNodeTypeManager.h"
 
 #include "OpenCVNodeGraph.h"
 #include "OpenCVNodes_Base.h"
 #include "OpenCVNodes_Core.h"
 #include "OpenCVNodes_Face.h"
+#include "OpenCVNodes_Generators.h"
+#include "OpenCVNodes_Noise.h"
 #include "OpenCVNodes_Mask.h"
 
 #undef AddVar
@@ -33,6 +34,11 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::AddCreateNodeItemsToContextMenu(Vect
     {
         if( ImGui::MenuItem( "PoissonSampling" ) ) { ImGui::EndMenu(); return CreateNode( "Generate_PoissonSampling", pos, pNodeGraph ); }
         if( ImGui::MenuItem( "RegularGrid" ) )     { ImGui::EndMenu(); return CreateNode( "Generate_RegularGrid", pos, pNodeGraph ); }
+        if( ImGui::BeginMenu( "Noise" ) )
+        {
+            if( ImGui::MenuItem( "Simplex" ) )         { ImGui::EndMenu(); ImGui::EndMenu(); return CreateNode( "Generate_SimplexNoise", pos, pNodeGraph ); }
+            ImGui::EndMenu();
+        }
         ImGui::EndMenu();
     }
 
@@ -71,6 +77,7 @@ MyNodeGraph::MyNode* OpenCVNodeTypeManager::CreateNode(const char* typeName, Vec
     if( TypeIs( "File_Output" )                 return MyNew OpenCVNode_File_Output(                (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Output", pos );
     if( TypeIs( "Generate_PoissonSampling" )    return MyNew OpenCVNode_Generate_PoissonSampling(   (OpenCVNodeGraph*)pNodeGraph, newNodeID, "PoissonSampling", pos );
     if( TypeIs( "Generate_RegularGrid" )        return MyNew OpenCVNode_Generate_RegularGrid(       (OpenCVNodeGraph*)pNodeGraph, newNodeID, "RegularGrid", pos );
+    if( TypeIs( "Generate_SimplexNoise" )       return MyNew OpenCVNode_Generate_SimplexNoise(      (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Simplex Noise", pos );
     if( TypeIs( "Convert_Grayscale" )           return MyNew OpenCVNode_Convert_Grayscale(          (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Grayscale", pos );
     if( TypeIs( "Convert_Crop" )                return MyNew OpenCVNode_Convert_Crop(               (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Crop", pos );
     if( TypeIs( "Filter_Mask" )                 return MyNew OpenCVNode_Filter_Mask(                (OpenCVNodeGraph*)pNodeGraph, newNodeID, "Mask", pos );

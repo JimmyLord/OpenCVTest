@@ -29,7 +29,7 @@ protected:
 
 public:
     OpenCVBaseNode(OpenCVNodeGraph* pNodeGraph, OpenCVNodeGraph::NodeID id, const char* name, const Vector2& pos, int inputsCount, int outputsCount)
-    : MyNodeGraph::MyNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
+        : MyNodeGraph::MyNode( pNodeGraph, id, name, pos, inputsCount, outputsCount )
     {
         m_pNodeGraph = pNodeGraph;
         m_LastProcessTime = 0.0;
